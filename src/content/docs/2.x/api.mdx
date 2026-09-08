@@ -106,21 +106,21 @@ This matters when you register equivalent or duplicate callbacks. A handle belon
 
 ## Inspecting registrations
 
-The released inspection methods are:
+Use the inspection methods when you need to decide whether an extension point is populated, count registrations, or examine the handles that were returned by registration. They do not invoke callbacks.
 
-```php
-has(string $hookPoint): bool
-hasAction(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool
-hasFilter(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool
-hasCollector(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool
-count(?string $hookPoint = null): int
-listeners(string $hookPoint): array
-actions(string $hookPoint): array
-filters(string $hookPoint): array
-collectors(string $hookPoint): array
-```
+| Method | What it tells you | Return details |
+| --- | --- | --- |
+| `has(string $hookPoint): bool` | Whether at least one action, filter, or collector is registered at the hook point. | `true` for any registration type; `false` when the point is empty. |
+| `hasAction(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether an action is registered. With a callback, checks that callback at the given priority. | Type-aware boolean result; a missing callback asks whether any action exists. |
+| `hasFilter(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether a filter is registered. With a callback, checks that exact callback and priority. | Type-aware boolean result; an action with the same callback does not satisfy it. |
+| `hasCollector(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether a collector is registered. With a callback, checks that exact callback and priority. | Type-aware boolean result; actions and filters are not included. |
+| `count(?string $hookPoint = null): int` | How many registrations exist across all hook types. | With a hook point, counts only that point; without one, counts the entire registry. |
+| `listeners(string $hookPoint): array` | Every registration at the point, regardless of type. | Returns `RegistrationHandle` objects sorted by priority and registration order. |
+| `actions(string $hookPoint): array` | The action registrations at the point. | Returns action handles in dispatch order. |
+| `filters(string $hookPoint): array` | The filter registrations at the point. | Returns filter handles in dispatch order. |
+| `collectors(string $hookPoint): array` | The collector registrations at the point. | Returns collector handles in dispatch order. |
 
-`has()` checks whether any action, filter, or collector exists at a hook point. The type-specific methods check one type. Omit the callback to ask whether anything of that type is registered; provide it to include callback and priority matching:
+For `hasAction()`, `hasFilter()`, and `hasCollector()`, omit the callback when you only need to know whether that type has any registration. Pass the callback when callback identity and priority matter. The default priority is `10`; the priority argument is relevant to callback matching.
 
 ```php
 <?php
@@ -140,7 +140,34 @@ $hasExactPriority = $hooks->hasFilter('email.subject', $callback, priority: 20);
 $hasWrongPriority = $hooks->hasFilter('email.subject', $callback, priority: 10);
 ```
 
-`count()` counts registrations across all hook types, optionally limited to one hook point. `listeners()` returns handles for every type at the point. `actions()`, `filters()`, and `collectors()` return handles for the corresponding exact type, all in dispatch order.
+The handle collections are useful when you need metadata or exact removal later. For example:
+
+```php
+use Magdicom\Hooks;
+
+$hooks = new Hooks();
+$sendReceipt = static function (int $invoiceId): void {
+    // Send the receipt for the paid invoice.
+};
+$applyDiscount = static fn (int $total): int => $total - 100;
+$billingWidget = static fn (): array => ['key' => 'revenue'];
+
+$hooks->addAction('invoice.paid', $sendReceipt, priority: 20);
+$hooks->addFilter('invoice.total', $applyDiscount);
+$hooks->addCollector('dashboard.widgets', $billingWidget);
+
+$totalRegistrations = $hooks->count();
+$invoiceRegistrations = $hooks->count('invoice.paid');
+$allInvoiceListeners = $hooks->listeners('invoice.paid');
+$invoiceActions = $hooks->actions('invoice.paid');
+$invoiceFilters = $hooks->filters('invoice.paid');
+$widgetCollectors = $hooks->collectors('dashboard.widgets');
+
+$firstListener = $allInvoiceListeners[0] ?? null;
+$firstListener?->priority();
+```
+
+The arrays contain handles, not callback return values. They are snapshots of the registrations at the time you call the inspection method. Use `RegistrationHandle::remove()` when you want to remove the exact registration represented by one of those handles; use the callback-based removal methods when you intentionally want to match by callback and priority.
 
 ## Type-aware removal
 
