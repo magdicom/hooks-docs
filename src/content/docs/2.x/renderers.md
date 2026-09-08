@@ -18,23 +18,30 @@ setRenderer(string $hookPoint, Renderer|callable|string $renderer): self
 render(string $hookPoint, mixed ...$arguments): string
 ```
 
-`render()` collects one raw result per listener, passes the list and a `ProcessingContext` to the renderer, and requires a string result:
+`render()` collects one raw result per listener, passes the list and a `ProcessingContext` to the renderer, and requires a string result. For example, an order receipt can collect structured sections and leave the final layout to one renderer:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
+use App\Models\Order;
 use Magdicom\Hooks;
-use Magdicom\Processor\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('navigation.items', static fn (): string => '<a href="/docs">Docs</a>');
-$hooks->addCollector('navigation.items', static fn (): string => '<a href="/api">API</a>');
-$hooks->setRenderer('navigation.items', new ConcatenateRenderer(separator: "\n"));
+$hooks->addCollector('order.receipt.sections', static fn (Order $order): array => [
+    'title' => 'Payment',
+    'rows' => [
+        ['label' => 'Method', 'value' => $order->paymentMethod],
+        ['label' => 'Total', 'value' => $order->formattedTotal()],
+    ],
+]);
+$hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
 
-$html = $hooks->render('navigation.items');
+$html = $hooks->render('order.receipt.sections', $order);
 ```
+
+`OrderReceiptRenderer` is an application class implementing `Renderer`. It receives the raw section list and a `ProcessingContext`, escapes values, and returns the final HTML. Keeping that work in one place means extensions contribute data without controlling the receipt layout. See the [order receipt use case](/docs/2.x/use-cases/#modular-order-receipts-with-a-renderer) for the complete renderer example.
 
 `collect()` remains the raw operation even when a renderer is configured. `process()` and `render()` use the same collector result slot, so configure the endpoint for the operation your caller needs.
 

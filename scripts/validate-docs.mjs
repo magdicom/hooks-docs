@@ -56,7 +56,8 @@ for (const { file, text } of markdown) {
   for (const match of text.matchAll(/\]\((\/[^)#?]*)[^)]*\)/g)) internalLinks.push({ file, target: match[1] })
 }
 for (const { file, target } of internalLinks) {
-  if (target.startsWith('/docs/') && !plannedRoutes.includes(target) && !plannedRoutes.includes(`${target}/`)) {
+  const normalizedTarget = target.replace(/\/$/, '') || '/'
+  if (target.startsWith('/docs/') && !plannedRoutes.includes(target) && !plannedRoutes.includes(normalizedTarget) && !plannedRoutes.includes(`${normalizedTarget}/`)) {
     fail(`${relative(root, file)}: internal link has no planned route: ${target}`)
   }
 }
@@ -84,7 +85,7 @@ const allowedMethods = new Set([
 for (const { file, code } of phpBlocks) {
   const name = relative(root, file)
   const completeExample = code.includes('<?php')
-  for (const match of code.matchAll(/(?:\$\w+|hooks\(\))\s*->\s*(\w+)\s*\(/g)) {
+  for (const match of code.matchAll(/(?:\$hooks|hooks\(\))\s*->\s*(\w+)\s*\(/g)) {
     if (!allowedMethods.has(match[1])) fail(`${name}: unknown Hooks method in PHP example: ${match[1]}`)
   }
   if (completeExample && /\$hooks\s*->/.test(code) && !/new\s+Hooks\s*\(/.test(code) && !/\$hooks\s*=/.test(code)) fail(`${name}: core example uses $hooks without defining it`)
@@ -93,7 +94,7 @@ for (const { file, code } of phpBlocks) {
 const allText = sourceFiles.map((file) => readFileSync(file, 'utf8')).join('\n')
 if (!allText.includes('composer require magdicom/hooks:"^2.0@beta"')) fail('installation: core beta Composer command is missing')
 if (!allText.includes('composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"')) fail('installation: Laravel beta Composer command is missing')
-for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'navigation.items', 'checkout.allowed']) {
+for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'order.receipt.sections', 'checkout.allowed']) {
   if (!allText.includes(hookPoint)) fail(`use-cases: expected hook point is missing: ${hookPoint}`)
 }
 if (/magdicom\/hook(?!s)/.test(allText)) fail('source: incorrect core package name detected')

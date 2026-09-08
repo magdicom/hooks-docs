@@ -141,28 +141,91 @@ $paymentMethods = $hooks->collect('checkout.payment_methods');
 
 The checkout implementation receives every definition and decides how to display or validate it. A collector fits because each package owns an independent payment-method record.
 
-## Navigation output with a renderer
+## Modular order receipts with a renderer
 
 ### The problem
 
-Several modules may contribute navigation items, but the layout should have one place that turns those contributions into the final navigation output.
+An order receipt may need payment details, tax, discounts, loyalty rewards, shipping, and subscription information. Those features often live in separate modules. The order service should not ask each module for data or let each one produce its own HTML.
 
-### Collect fragments and render them
+### Collect structured sections
 
-Collectors return strings that the built-in `ConcatenateRenderer` can accept. The separator is explicit, and the renderer returns one final string:
+Expose `order.receipt.sections` when the application has an `Order`. Each extension contributes structured data for one section, not a complete receipt:
 
 ```php
-use Magdicom\Processor\ConcatenateRenderer;
+use App\Models\Order;
 
-$hooks->addCollector('navigation.items', static fn (): string => '<a href="/account">Account</a>');
-$hooks->addCollector('navigation.items', static fn (): string => '<a href="/help">Help</a>');
-$hooks->setRenderer('navigation.items', new ConcatenateRenderer(separator: "\n"));
+$hooks->addCollector(
+    'order.receipt.sections',
+    static fn (Order $order): array => [
+        'title' => 'Payment',
+        'rows' => [
+            ['label' => 'Method', 'value' => $order->paymentMethod],
+            ['label' => 'Total', 'value' => $order->formattedTotal()],
+        ],
+    ],
+);
 
-$navigation = $hooks->render('navigation.items');
-// '<a href="/account">Account</a>\n<a href="/help">Help</a>'
+$hooks->addCollector(
+    'order.receipt.sections',
+    static fn (Order $order): array => [
+        'title' => 'Shipping',
+        'rows' => [
+            ['label' => 'Address', 'value' => $order->shippingAddress],
+        ],
+    ],
+);
+
+$sections = $hooks->collect('order.receipt.sections', $order);
+// One raw array entry per registered section.
 ```
 
-`ConcatenateRenderer` accepts strings, scalar values, `null`, and `Stringable` objects. It returns an empty string for an empty result list and throws `UnexpectedValueException` for an unsupported value. Renderers apply to collectors, not actions or filters.
+The application owns the final layout in one renderer. Its `process()` method receives the collected sections and the exact `ProcessingContext` required by the released `Renderer` contract:
+
+```php
+use Magdicom\ProcessingContext;
+use Magdicom\Renderer;
+
+final class OrderReceiptRenderer implements Renderer
+{
+    public function process(array $results, ProcessingContext $context): string
+    {
+        $sections = array_map(
+            static fn (array $section): string => sprintf(
+                '<section><h2>%s</h2>%s</section>',
+                self::escape((string) $section['title']),
+                self::rows($section['rows']),
+            ),
+            $results,
+        );
+
+        return implode("\n", $sections);
+    }
+
+    private static function rows(array $rows): string
+    {
+        return implode("\n", array_map(
+            static fn (array $row): string => sprintf(
+                '<p><strong>%s:</strong> %s</p>',
+                self::escape((string) $row['label']),
+                self::escape((string) $row['value']),
+            ),
+            $rows,
+        ));
+    }
+
+    private static function escape(string $value): string
+    {
+        return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    }
+}
+
+$hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
+$html = $hooks->render('order.receipt.sections', $order);
+```
+
+The renderer receives one raw section per collector, so modules can contribute payment, tax, discount, loyalty, shipping, or subscription data without knowing the receipt's presentation. Escaping and formatting happen in one place, which keeps the output consistent and lets you redesign the receipt without changing every extension. `collect()` remains available when another caller needs the raw sections; use `render()` when the caller needs the final string.
+
+This example uses a custom renderer because the receipt has structure. The built-in `ConcatenateRenderer` is still useful for the simple case of joining supported scalar, string, `null`, or `Stringable` results. Another custom renderer could use the same section shape for a plain-text email, but each call still uses the renderer configured for that hook point; one collector invocation does not automatically produce multiple formats. Renderers apply to collectors, not actions or filters.
 
 ## Application decisions with boolean processors
 
