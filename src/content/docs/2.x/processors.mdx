@@ -13,15 +13,17 @@ Processors apply only to collectors. Actions return `void`, and filters already 
 
 ## Configure and process
 
-The relevant methods are:
+The processor methods have distinct responsibilities:
 
-```php
-setProcessor(string $hookPoint, ResultProcessor|callable|string $processor): self
-hasProcessor(string $hookPoint): bool
-processor(string $hookPoint): ResultProcessor|callable|string|null
-clearProcessor(string $hookPoint): bool
-process(string $hookPoint, mixed ...$arguments): mixed
-```
+| Method | Use it for | Returns or does |
+| --- | --- | --- |
+| `setProcessor(string $hookPoint, ResultProcessor\|callable\|string $processor)` | Choosing the reduction applied to a collector point. A class name is resolved when processing runs. | The same `Hooks` instance, so deliberate chaining remains possible. |
+| `hasProcessor(string $hookPoint)` | Checking whether a processor is configured before calling `process()`. | `bool`. |
+| `processor(string $hookPoint)` | Reading the configured processor reference for inspection or replacement logic. | The stored processor, callable, class name, or `null`. |
+| `clearProcessor(string $hookPoint)` | Removing the configured processor slot. | `true` when a slot existed; otherwise `false`. |
+| `process(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured processor. | The processor's output; throws `MissingProcessorException` when no processor is configured. |
+
+Processors apply only to collectors. `collect()` still returns the raw list and bypasses this configuration.
 
 `collect()` always returns raw callback results. `process()` collects those results and then applies the configured processor:
 

@@ -13,12 +13,14 @@ Configure a renderer with `setRenderer()` and call `render()` when the caller ne
 
 ## Configure and render
 
-The relevant methods are:
+The renderer methods have distinct responsibilities:
 
-```php
-setRenderer(string $hookPoint, Renderer|callable|string $renderer): self
-render(string $hookPoint, mixed ...$arguments): string
-```
+| Method | Use it for | Returns or does |
+| --- | --- | --- |
+| `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer)` | Choosing the formatter for a collector point. A class name is resolved when rendering runs. | The same `Hooks` instance. The renderer occupies the collector's processing slot. |
+| `render(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured renderer. | A `string`; throws `MissingRendererException` when unset and `InvalidRendererException` for invalid output or configuration. |
+
+Renderers apply only to collectors. Use `collect()` for raw results and `process()` for non-string reductions.
 
 `render()` collects one raw result per listener, passes the list and a `ProcessingContext` to the renderer, and requires a string result. For example, an order receipt can collect structured sections and leave the final layout to one renderer:
 

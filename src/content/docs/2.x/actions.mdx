@@ -13,11 +13,14 @@ For example, an order-created action can notify an integration and write an audi
 
 ## Register and run an action
 
-The core signature is:
+The action methods have two jobs:
 
-```php
-addAction(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-```
+| Method | Use it for | Returns |
+| --- | --- | --- |
+| `addAction(string $hookPoint, array\|callable $callback, int $priority = 10)` | Registering a callback for a named side effect. The callback receives the arguments passed to `doAction()`. | A `RegistrationHandle` for the exact registration. |
+| `doAction(string $hookPoint, mixed ...$arguments)` | Running the registered action callbacks in priority order. | `void`; callback return values are ignored. |
+
+The default priority is `10`. Use a lower number when a listener must run earlier, or a higher number when it should run later.
 
 Callbacks receive the extra arguments passed to `doAction()`, in the same order:
 

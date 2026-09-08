@@ -13,12 +13,14 @@ For example, dashboard cards may come from several packages. Each package can re
 
 ## Register and collect
 
-The core signatures are:
+The collector methods have two jobs:
 
-```php
-addCollector(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-collect(string $hookPoint, mixed ...$arguments): array
-```
+| Method | Use it for | Returns |
+| --- | --- | --- |
+| `addCollector(string $hookPoint, array\|callable $callback, int $priority = 10)` | Registering a callback that contributes one independent result. | A `RegistrationHandle` for the exact registration. |
+| `collect(string $hookPoint, mixed ...$arguments)` | Invoking every collector with the same explicit arguments. | One raw result per listener, in priority and registration order. |
+
+The default priority is `10`. `collect()` does not merge, flatten, process, or render the returned entries; choose those operations explicitly when you need them.
 
 Every listener receives the same explicit arguments, and its return value becomes one entry in the result array:
 

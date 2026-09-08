@@ -13,12 +13,14 @@ A useful example is a display title that different integrations can localize or 
 
 ## Register and apply
 
-The core signatures are:
+The filter methods have two jobs:
 
-```php
-addFilter(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-applyFilters(string $hookPoint, mixed $value, mixed ...$arguments): mixed
-```
+| Method | Use it for | Returns |
+| --- | --- | --- |
+| `addFilter(string $hookPoint, array\|callable $callback, int $priority = 10)` | Registering a callback that receives the current value first, followed by any extra invocation arguments. | A `RegistrationHandle` for the exact registration. |
+| `applyFilters(string $hookPoint, mixed $value, mixed ...$arguments)` | Starting a filter chain with `$value` and passing each callback's result to the next callback. | The final filtered value, or the original value when no listener exists. |
+
+The default priority is `10`. Lower priorities run earlier, so priority is part of the order contract when one transformation depends on another.
 
 The current value is always the first callback argument. Any additional arguments follow it:
 
