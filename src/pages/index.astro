@@ -181,7 +181,7 @@ $displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
   .link-grid a:hover { color: #7dd3fc; }
   .site-footer { display: flex; justify-content: space-between; padding: 1.5rem; border-top: 1px solid #cbd5e1; color: #334155; font-size: 0.85rem; }
   .site-footer a { color: #075985; }
-  :global(a:focus-visible) { outline: 3px solid #0ea5e9; outline-offset: 3px; border-radius: 0.2rem; }
+  :global(a:focus-visible) { outline: 3px solid #075985; outline-offset: 3px; border-radius: 0.2rem; }
   @media (prefers-color-scheme: dark) {
     :global(body) { color: #e2e8f0; background: #020617; }
     .brand, h1, h2, h3 { color: #e2e8f0; }
@@ -195,6 +195,7 @@ $displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
     .comparison-row { border-color: #334155; }
     .comparison-highlight { background: #0c4a6e; }
     .install-card code { color: #bae6fd; background: #1e293b; }
+    :global(a:focus-visible) { outline-color: #38bdf8; }
   }
   @media (max-width: 55rem) { .hero, .example-section, .example-section-reverse { grid-template-columns: 1fr; gap: 2rem; } .example-section-reverse .example-copy { order: initial; } .concept-grid { grid-template-columns: 1fr; } .link-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 40rem) { .site-header { align-items: flex-start; } .site-header nav { flex-direction: column; gap: 0.4rem; align-items: flex-end; } main { padding: 0 1.25rem 3rem; } .hero { padding: 4rem 0 5rem; } h1 { font-size: clamp(3rem, 16vw, 5rem); } .section { padding: 3.5rem 0; } .install-grid, .link-grid { grid-template-columns: 1fr; } .comparison-row { grid-template-columns: 1fr; gap: 0.25rem; } .closing-panel { padding: 2rem 1.25rem; } .site-footer { flex-direction: column; gap: 0.5rem; } }

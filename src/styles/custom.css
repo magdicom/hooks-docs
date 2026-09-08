@@ -4,6 +4,7 @@
   --hooks-sky: #0369a1;
   --hooks-sky-hover: #075985;
   --hooks-sky-bright: #0ea5e9;
+  --hooks-focus: #075985;
   --hooks-soft: #e0f2fe;
   --hooks-border: #cbd5e1;
   --sl-color-accent-low: #e0f2fe;
@@ -26,6 +27,7 @@
   --hooks-sky: #7dd3fc;
   --hooks-sky-hover: #38bdf8;
   --hooks-sky-bright: #38bdf8;
+  --hooks-focus: #38bdf8;
   --hooks-soft: #1e293b;
   --hooks-border: #334155;
   --sl-color-accent-low: #0c4a6e;
@@ -66,7 +68,7 @@ body {
 }
 
 :where(a, button, summary, select, input):focus-visible {
-  outline: 3px solid var(--hooks-sky-bright);
+  outline: 3px solid var(--hooks-focus);
   outline-offset: 3px;
 }
 
