@@ -3,6 +3,8 @@ title: Renderers
 description: Turn collector results into formatted strings.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 # Renderers
 
 Renderers turn a collector's results into a string. Use one when callback results need to become text, such as a list of labels or a short piece of markup. Renderers apply to collectors only.
@@ -20,26 +22,46 @@ render(string $hookPoint, mixed ...$arguments): string
 
 `render()` collects one raw result per listener, passes the list and a `ProcessingContext` to the renderer, and requires a string result. For example, an order receipt can collect structured sections and leave the final layout to one renderer:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use App\Models\Order;
+    use Magdicom\Hooks;
 
-use App\Models\Order;
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $hooks->addCollector('order.receipt.sections', static fn (Order $order): array => [
+        'title' => 'Payment',
+        'rows' => [
+            ['label' => 'Method', 'value' => $order->paymentMethod],
+            ['label' => 'Total', 'value' => $order->formattedTotal()],
+        ],
+    ]);
+    $hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
 
-$hooks = new Hooks();
-$hooks->addCollector('order.receipt.sections', static fn (Order $order): array => [
-    'title' => 'Payment',
-    'rows' => [
-        ['label' => 'Method', 'value' => $order->paymentMethod],
-        ['label' => 'Total', 'value' => $order->formattedTotal()],
-    ],
-]);
-$hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
+    $html = $hooks->render('order.receipt.sections', $order);
+    ```
 
-$html = $hooks->render('order.receipt.sections', $order);
-```
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    use App\Models\Order;
+
+    hooks()->addCollector('order.receipt.sections', static fn (Order $order): array => [
+        'title' => 'Payment',
+        'rows' => [
+            ['label' => 'Method', 'value' => $order->paymentMethod],
+            ['label' => 'Total', 'value' => $order->formattedTotal()],
+        ],
+    ]);
+    hooks()->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
+
+    $html = hooks()->render('order.receipt.sections', $order);
+    ```
+
+  </TabItem>
+</Tabs>
 
 `OrderReceiptRenderer` is an application class implementing `Renderer`. It receives the raw section list and a `ProcessingContext`, escapes values, and returns the final HTML. Keeping that work in one place means extensions contribute data without controlling the receipt layout. See the [order receipt use case](/docs/2.x/use-cases/#modular-order-receipts-with-a-renderer) for the complete renderer example.
 
@@ -49,7 +71,7 @@ Without a configured renderer, `render()` throws `MissingRendererException`. A c
 
 ## `ConcatenateRenderer`
 
-The built-in `Magdicom\Processor\ConcatenateRenderer` joins rendered entries with a separator:
+The built-in `Magdicom\Processors\ConcatenateRenderer` joins rendered entries with a separator:
 
 ```php
 final class ConcatenateRenderer implements Renderer
@@ -66,7 +88,7 @@ It accepts `null` (as an empty string), strings, scalar values, and `Stringable`
 declare(strict_types=1);
 
 use Magdicom\Hooks;
-use Magdicom\Processor\ConcatenateRenderer;
+use Magdicom\Processors\ConcatenateRenderer;
 
 $hooks = new Hooks();
 $hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');

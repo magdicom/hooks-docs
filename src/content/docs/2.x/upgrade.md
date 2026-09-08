@@ -115,8 +115,8 @@ When the old code selected one collector result, configure the intended reductio
 declare(strict_types=1);
 
 use Magdicom\Hooks;
-use Magdicom\Processor\FirstProcessor;
-use Magdicom\Processor\LastProcessor;
+use Magdicom\Processors\FirstProcessor;
+use Magdicom\Processors\LastProcessor;
 
 $hooks = new Hooks();
 $hooks->addCollector('checkout.banner', static fn (): string => 'Primary');
@@ -185,7 +185,7 @@ When the old code assembled collector output as a string, use a renderer with an
 declare(strict_types=1);
 
 use Magdicom\Hooks;
-use Magdicom\Processor\ConcatenateRenderer;
+use Magdicom\Processors\ConcatenateRenderer;
 
 $hooks = new Hooks();
 $hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');

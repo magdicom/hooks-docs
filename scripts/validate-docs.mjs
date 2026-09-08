@@ -12,10 +12,11 @@ const fail = (message) => failures.push(message)
 const filesUnder = (directory, extension) => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
   const path = join(directory, entry.name)
   if (entry.isDirectory()) return filesUnder(path, extension)
-  return path.endsWith(extension) ? [path] : []
+  const extensions = Array.isArray(extension) ? extension : [extension]
+  return extensions.some((suffix) => path.endsWith(suffix)) ? [path] : []
 })
 
-const markdownFiles = filesUnder(docsRoot, '.md')
+const markdownFiles = filesUnder(docsRoot, ['.md', '.mdx'])
 const sourceFiles = [...markdownFiles, join(root, 'src', 'pages', 'index.astro')]
 const markdown = markdownFiles.map((file) => ({ file, text: readFileSync(file, 'utf8') }))
 
@@ -24,10 +25,17 @@ for (const { file, text } of markdown) {
   if (!text.startsWith('---\n') || !/^title:\s*.+$/m.test(text) || !/^description:\s*.+$/m.test(text)) {
     fail(`${name}: missing title/description frontmatter`)
   }
-  const fences = text.match(/^```/gm) ?? []
+  const fences = text.match(/^[ \t]*```/gm) ?? []
   if (fences.length % 2 !== 0) fail(`${name}: unclosed Markdown code fence`)
   if (/planned for the next documentation implementation task/i.test(text)) {
     fail(`${name}: placeholder documentation text remains`)
+  }
+  if (text.includes('<Tabs')) {
+    for (const match of text.matchAll(/<Tabs\b([^>]*)>([\s\S]*?)<\/Tabs>/g)) {
+      if (!match[1].includes('syncKey="framework"')) fail(`${name}: tab group must use syncKey="framework"`)
+      const labels = [...match[2].matchAll(/<TabItem\s+label="([^"]+)"/g)].map((tab) => tab[1])
+      if (labels.length !== 2 || labels[0] !== 'PHP' || labels[1] !== 'Laravel') fail(`${name}: tab group must use exactly PHP then Laravel labels`)
+    }
   }
 }
 
@@ -47,7 +55,7 @@ if (!representativeHtml.includes('property="og:title"')) fail('docs/2.x: Open Gr
 if (!representativeHtml.includes('https://github.com/magdicom/hooks-docs/edit/main/src/content/docs/2.x/index.md')) fail('docs/2.x: edit link is missing or incorrect')
 
 const routeForMarkdown = (file) => {
-  const path = relative(docsRoot, file).replace(/\.md$/, '')
+  const path = relative(docsRoot, file).replace(/\.(?:md|mdx)$/, '')
   if (path === 'index') return '/docs'
   return `/docs/${path}`
 }
@@ -74,7 +82,7 @@ if (sidebarPositions.some((position) => position < 0) || sidebarPositions[0] > s
   fail('astro.config.mjs: Use Cases must appear after Concepts and before Actions')
 }
 
-const phpBlocks = markdown.flatMap(({ file, text }) => [...text.matchAll(/```php\n([\s\S]*?)```/g)].map((match) => ({ file, code: match[1] })))
+const phpBlocks = markdown.flatMap(({ file, text }) => [...text.matchAll(/^[ \t]*```php\n([\s\S]*?)^[ \t]*```/gm)].map((match) => ({ file, code: match[1] })))
 const allowedMethods = new Set([
   'addAction', 'addFilter', 'addCollector', 'doAction', 'applyFilters', 'collect', 'setProcessor',
   'setRenderer', 'process', 'render', 'removeAction', 'removeFilter', 'removeCollector', 'removeAll',
@@ -97,6 +105,8 @@ if (!allText.includes('composer require magdicom/laravel-hooks:"^2.0@beta" magdi
 if (/Magdicom\\Hooks::(?!class\b)/.test(allText)) fail('source: core Magdicom\\Hooks must not be documented with static calls')
 if (!allText.includes('use Magdicom\\LaravelHooks\\Facades\\Hooks;')) fail('laravel: complete facade import is missing')
 if (!allText.includes('hooks()->addAction(')) fail('laravel: helper calling style is missing')
+if (!allText.includes('Magdicom\\Processors\\FirstProcessor')) fail('processors: plural built-in namespace is missing')
+if (allText.includes('Magdicom\\Processor\\')) fail('source: singular processor namespace remains in public documentation')
 for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'order.receipt.sections', 'checkout.allowed']) {
   if (!allText.includes(hookPoint)) fail(`use-cases: expected hook point is missing: ${hookPoint}`)
 }

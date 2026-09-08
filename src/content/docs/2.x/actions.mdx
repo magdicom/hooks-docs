@@ -3,6 +3,8 @@ title: Actions
 description: Run ordered callbacks for synchronous side effects.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 # Actions
 
 Use an action when something should happen but the caller does not need a value back. Actions are synchronous and ordered: register callbacks with `addAction()`, then run them with `doAction()`.
@@ -19,21 +21,34 @@ addAction(string $hookPoint, array|callable $callback, int $priority = 10): Regi
 
 Callbacks receive the extra arguments passed to `doAction()`, in the same order:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
 
-$hooks = new Hooks();
+    $hooks->addAction('invoice.paid', static function (int $invoiceId, string $currency): void {
+        // Write an audit entry or notify a synchronous integration.
+    }, priority: 10);
 
-$hooks->addAction('invoice.paid', static function (int $invoiceId, string $currency): void {
-    // Write an audit entry or notify a synchronous integration.
-}, priority: 10);
+    $hooks->doAction('invoice.paid', 42, 'USD');
+    ```
 
-$hooks->doAction('invoice.paid', 42, 'USD');
-```
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    hooks()->addAction('invoice.paid', static function (int $invoiceId, string $currency): void {
+        // Write an audit entry or notify a synchronous integration.
+    }, priority: 10);
+
+    hooks()->doAction('invoice.paid', 42, 'USD');
+    ```
+
+  </TabItem>
+</Tabs>
 
 `doAction()` returns `void`. Callback return values are ignored, so use an action for side effects rather than for producing a value. You can pass any number of explicit arguments after the hook point.
 

@@ -3,6 +3,8 @@ title: Use Cases
 description: Practical ways to use Hooks for integrations, customization, and contributed results.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 # Use Cases
 
 Hooks is useful when one part of an application should offer a stable place for other code to participate. The original class owns the hook point; modules add behavior without forcing that class to know every integration.
@@ -12,6 +14,32 @@ The examples on this page use a recommended naming style: lowercase, dot-separat
 The snippets focus on the important lines, so they omit `<?php` and `declare(strict_types=1);`. Your application can use strict types according to its own project conventions; Hooks does not require that declaration specifically.
 
 Unless a section says Laravel, `$hooks` refers to a `Magdicom\Hooks` instance created with `new Hooks()` or provided through constructor injection. Core calls are instance methods such as `$hooks->addAction(...)`; the core class does not offer static calls or global state.
+
+The extension idea is the same in both environments. Only the way you reach the shared Hooks object changes:
+
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
+
+    ```php
+    use Magdicom\Hooks;
+
+    $hooks = new Hooks();
+    $hooks->addAction('invoice.paid', $callback);
+    $hooks->doAction('invoice.paid', $invoice);
+    ```
+
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    hooks()->addAction('invoice.paid', $callback);
+    hooks()->doAction('invoice.paid', $invoice);
+    ```
+
+  </TabItem>
+</Tabs>
+
+The remaining examples focus on the hook design and use the core instance form unless they specifically discuss Laravel resolution.
 
 ## Invoice-paid extensions with an action
 
@@ -240,7 +268,7 @@ Checkout may be allowed only when every relevant rule agrees. Inventory, fraud c
 Use `BooleanAndProcessor` to require every contribution to be `true`:
 
 ```php
-use Magdicom\Processor\BooleanAndProcessor;
+use Magdicom\Processors\BooleanAndProcessor;
 
 $hooks->addCollector('checkout.allowed', static fn (int $userId): bool => true);
 $hooks->addCollector('checkout.allowed', static fn (int $userId): bool => $userId !== 0);

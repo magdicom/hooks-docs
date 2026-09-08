@@ -1,0 +1,245 @@
+---
+title: Processors
+description: Turn collector results into the value your application needs.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Processors
+
+Processors reduce the raw results from a collector to one value. Use them when several modules contribute data but the caller needs a clear answer, such as the first available email, a merged list, or a boolean decision.
+
+Processors apply only to collectors. Actions return `void`, and filters already return their transformed value.
+
+## Configure and process
+
+The relevant methods are:
+
+```php
+setProcessor(string $hookPoint, ResultProcessor|callable|string $processor): self
+hasProcessor(string $hookPoint): bool
+processor(string $hookPoint): ResultProcessor|callable|string|null
+clearProcessor(string $hookPoint): bool
+process(string $hookPoint, mixed ...$arguments): mixed
+```
+
+`collect()` always returns raw callback results. `process()` collects those results and then applies the configured processor:
+
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
+
+    ```php
+    use App\Models\Customer;
+    use Magdicom\Hooks;
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    $hooks = new Hooks();
+    $hooks->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->workEmail);
+    $hooks->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->personalEmail);
+    $hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+
+    $email = $hooks->process('customer.primary_email', $customer);
+    ```
+
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    use App\Models\Customer;
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    hooks()->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->workEmail);
+    hooks()->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->personalEmail);
+    hooks()->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+
+    $email = hooks()->process('customer.primary_email', $customer);
+    ```
+
+  </TabItem>
+</Tabs>
+
+Calling `collect('customer.primary_email', $customer)` on the same endpoint still returns one raw result per listener. It bypasses processor and renderer configuration. Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
+
+## Built-in processors
+
+The released built-ins live under `Magdicom\Processors` and implement `ResultProcessor`. Each receives `(array $results, ProcessingContext $context)` and returns its documented value.
+
+| Processor | Collector results | Return value | Empty results | Keys and failures |
+| --- | --- | --- | --- | --- |
+| `FirstProcessor` | Any values | First value | `null` | Keeps the selected value; no extra validation |
+| `LastProcessor` | Any values | Last value | `null` | Keeps the selected value; no extra validation |
+| `FirstNonNullProcessor` | Any values | First non-`null` value | `null` | Keeps the selected value; no extra validation |
+| `MergeProcessor` | Arrays | One merged array | `[]` | `array_merge()` semantics; non-arrays throw `UnexpectedValueException` |
+| `FlattenProcessor` | Arrays | One flattened array | `[]` | Numeric keys are reindexed and array keys are discarded; invalid depth or non-arrays throw |
+| `BooleanAndProcessor` | Strict booleans | `bool` | `true` | Non-booleans throw `UnexpectedValueException` |
+| `BooleanOrProcessor` | Strict booleans | `bool` | `false` | Non-booleans throw `UnexpectedValueException` |
+
+All built-ins receive the original hook point and invocation arguments through `ProcessingContext`. They do not add shortcut methods such as `first()`, `last()`, `merge()`, or `flatten()`.
+
+### FirstProcessor
+
+Use `FirstProcessor` when the first registered contribution wins. It returns the first raw result, or `null` when no collectors ran. It accepts any result type and has no configuration options.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\FirstProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('customer.primary_email', static fn (): ?string => 'work@example.test');
+$hooks->addCollector('customer.primary_email', static fn (): ?string => 'personal@example.test');
+$hooks->setProcessor('customer.primary_email', FirstProcessor::class);
+
+$email = $hooks->process('customer.primary_email');
+// 'work@example.test'
+```
+
+### LastProcessor
+
+`LastProcessor` is useful when later registration should provide the final fallback or override. It returns the last result, or `null` for an empty list. It accepts any result type and has no options.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\LastProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('checkout.banner', static fn (): string => 'Standard checkout');
+$hooks->addCollector('checkout.banner', static fn (): string => 'Holiday checkout');
+$hooks->setProcessor('checkout.banner', LastProcessor::class);
+
+$banner = $hooks->process('checkout.banner');
+// 'Holiday checkout'
+```
+
+### FirstNonNullProcessor
+
+`FirstNonNullProcessor` skips `null` results until it finds a value. It returns `null` when every result is `null` or there are no results. It accepts any result type and has no options.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\FirstNonNullProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('customer.primary_email', static fn (): ?string => null);
+$hooks->addCollector('customer.primary_email', static fn (): ?string => 'personal@example.test');
+$hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+
+$email = $hooks->process('customer.primary_email');
+// 'personal@example.test'
+```
+
+### MergeProcessor
+
+Use `MergeProcessor` when each collector returns an array and the caller needs one combined array. It uses PHP's `array_merge()` semantics: string keys later in the list overwrite earlier values, while numeric keys are reindexed. An empty result list returns `[]`; a non-array result throws `UnexpectedValueException`.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\MergeProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('checkout.payment_data', static fn (): array => ['currency' => 'USD']);
+$hooks->addCollector('checkout.payment_data', static fn (): array => ['provider' => 'card']);
+$hooks->setProcessor('checkout.payment_data', MergeProcessor::class);
+
+$data = $hooks->process('checkout.payment_data');
+// ['currency' => 'USD', 'provider' => 'card']
+```
+
+### FlattenProcessor
+
+Use `FlattenProcessor` when collectors return nested arrays and the caller needs one list of values. Its constructor accepts `depth`, defaulting to `-1` for unlimited flattening. Depth `0` keeps nested arrays at the current level; non-negative depths limit traversal. A depth below `-1` throws `InvalidArgumentException`. Every top-level result must be an array or processing throws `UnexpectedValueException`. Flattening discards array keys and reindexes the result.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\FlattenProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('navigation.items', static fn (): array => ['Account', ['Billing', 'Help']]);
+$hooks->setProcessor('navigation.items', new FlattenProcessor(depth: 1));
+
+$items = $hooks->process('navigation.items');
+// ['Account', 'Billing', 'Help']
+```
+
+### BooleanAndProcessor
+
+Use `BooleanAndProcessor` when every registered rule must approve a decision. Each collector must return a real `bool`; values are not coerced. It returns `false` as soon as it sees `false`, `true` for an empty result list, and throws `UnexpectedValueException` for any non-boolean result.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\BooleanAndProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('checkout.allowed', static fn (): bool => true);
+$hooks->addCollector('checkout.allowed', static fn (): bool => true);
+$hooks->setProcessor('checkout.allowed', new BooleanAndProcessor());
+
+$allowed = $hooks->process('checkout.allowed');
+// true
+```
+
+### BooleanOrProcessor
+
+Use `BooleanOrProcessor` when one approving rule is enough. Results must be real booleans. It returns `true` as soon as it sees `true`, `false` for an empty result list, and throws `UnexpectedValueException` for any non-boolean result.
+
+```php
+use Magdicom\Hooks;
+use Magdicom\Processors\BooleanOrProcessor;
+
+$hooks = new Hooks();
+$hooks->addCollector('checkout.expedited', static fn (): bool => false);
+$hooks->addCollector('checkout.expedited', static fn (): bool => true);
+$hooks->setProcessor('checkout.expedited', new BooleanOrProcessor());
+
+$expedited = $hooks->process('checkout.expedited');
+// true
+```
+
+## Processor callbacks and class names
+
+`setProcessor()` accepts a processor instance, a callable, or a class name. A callable receives the raw result array and `ProcessingContext` and may return any value:
+
+```php
+use Magdicom\Hooks;
+use Magdicom\ProcessingContext;
+
+$hooks = new Hooks();
+$hooks->addCollector('report.scores', static fn (): int => 8);
+$hooks->addCollector('report.scores', static fn (): int => 13);
+$hooks->setProcessor('report.scores', static function (array $results, ProcessingContext $context): int {
+    return array_sum($results);
+});
+
+$total = $hooks->process('report.scores');
+// 21
+```
+
+Class-name processors are resolved when `process()` runs and must implement `ResultProcessor`; otherwise `InvalidProcessorException` is thrown. The core `NativeResolver` creates a class with `new $className()`. Laravel replaces that resolver with a container-backed resolver, so constructor dependencies can be injected:
+
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
+
+    ```php
+    use Magdicom\Hooks;
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    $hooks = new Hooks();
+    $hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+    $email = $hooks->process('customer.primary_email', $customer);
+    ```
+
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    hooks()->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+    $email = hooks()->process('customer.primary_email', $customer);
+    ```
+
+  </TabItem>
+</Tabs>
+
+The same class-name configuration is shown in both tabs; Laravel's resolver is what changes how the class is constructed. Custom processor exceptions propagate unchanged.
+
+See [renderers](/docs/2.x/renderers) for string-specific collector output, and [collectors](/docs/2.x/collectors) for raw collection semantics.

@@ -168,6 +168,10 @@ All built-ins implement the `ResultProcessor` or `Renderer` contract and receive
 
 Sources: [`src/Processor`](https://github.com/magdicom/hooks/tree/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Processor), [`BooleanProcessorsTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/BooleanProcessorsTest.php), [`FlattenProcessorTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/FlattenProcessorTest.php), [`MergeProcessorTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/MergeProcessorTest.php), [`ProcessorDispatchTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/ProcessorDispatchTest.php), and [`RendererDispatchTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/RendererDispatchTest.php).
 
+## Namespace note for the 2.0 branch
+
+The immutable `magdicom/hooks` `v2.0.0-beta.1` tag recorded above stores its built-ins under the singular `Magdicom\\Processor` namespace. The current `2.0` branch inspected for this documentation task has moved those classes to `Magdicom\\Processors`, including `ConcatenateRenderer`. The beta installation commands and release claims in this repository remain tied to the immutable tags above; do not present branch-only API changes as beta-tag behavior until a corresponding release is published.
+
 ## Laravel integration truth set
 
 ### Service provider and access paths
