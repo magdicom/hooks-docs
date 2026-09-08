@@ -50,15 +50,15 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addAction('cache.refresh', static function (): void {
+$hooks->addAction('cache.refreshed', static function (): void {
     // Runs first.
 }, priority: 5);
 
-$hooks->addAction('cache.refresh', static function (): void {
+$hooks->addAction('cache.refreshed', static function (): void {
     // Runs second.
 }, priority: 10);
 
-$hooks->doAction('cache.refresh');
+$hooks->doAction('cache.refreshed');
 ```
 
 Hooks takes a sorted snapshot before it starts. Adding or removing a listener inside a callback does not change the callbacks already selected for this run; the change is visible on the next run. Exceptions reach the caller.
@@ -80,12 +80,12 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addAction('cache.refresh', static function (): void {
+$handle = $hooks->addAction('cache.refreshed', static function (): void {
     // This exact registration can be removed later.
 });
 
 $handle->remove();
-$hooks->doAction('cache.refresh');
+$hooks->doAction('cache.refreshed');
 ```
 
 The handle belongs to the `Hooks` instance that created it. If you prefer callback-based removal, `removeAction($hookPoint, $callback, $priority)` removes the first matching callback at that priority. Use `removeAllActions(?string $hookPoint = null)` to remove action registrations in bulk.

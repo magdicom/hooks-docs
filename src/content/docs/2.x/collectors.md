@@ -29,10 +29,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addCollector('dashboard.cards', static fn (string $userId): array => ['owner' => $userId]);
-$hooks->addCollector('dashboard.cards', static fn (string $userId): array => ['count' => 3]);
+$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
+$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
 
-$cards = $hooks->collect('dashboard.cards', 'user-42');
+$cards = $hooks->collect('dashboard.widgets', 'user-42');
 // [['owner' => 'user-42'], ['count' => 3]]
 ```
 
@@ -51,11 +51,11 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$results = $hooks->collect('sidebar.items');
+$results = $hooks->collect('navigation.items');
 // []
 ```
 
-Arguments are explicit. `collect('sidebar.items', $userId)` passes `$userId` to every listener; Hooks does not keep a global parameter array or hidden invocation state.
+Arguments are explicit. `collect('navigation.items', $userId)` passes `$userId` to every listener; Hooks does not keep a global parameter array or hidden invocation state.
 
 ## Remove a collector
 
@@ -70,10 +70,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addCollector('sidebar.items', static fn (): string => 'Help');
+$handle = $hooks->addCollector('navigation.items', static fn (): string => 'Help');
 $handle->remove();
 
-$items = $hooks->collect('sidebar.items');
+$items = $hooks->collect('navigation.items');
 // []
 ```
 

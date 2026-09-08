@@ -85,6 +85,11 @@ $displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
         </div>
       </section>
 
+      <section class="section common-use-cases" aria-labelledby="use-cases-title">
+        <div class="section-heading"><p class="eyebrow">Common use cases</p><h2 id="use-cases-title">Keep integrations out of your core classes.</h2><p class="section-intro">See how actions, filters, collectors, processors, and renderers fit into invoices, dashboards, checkout, navigation, and Laravel applications.</p></div>
+        <a class="button button-secondary" href="/docs/2.x/use-cases">Explore practical examples</a>
+      </section>
+
       <section class="section example-section" aria-labelledby="core-example-title">
         <div class="example-copy"><p class="eyebrow">Framework-independent core</p><h2 id="core-example-title">Give your code a place to plug in.</h2><p>The core package works in any PHP application. Name a hook point, register a callback, and invoke it with the arguments your application already has.</p><a class="text-link" href="/docs/2.x/actions">Learn about actions →</a></div>
         <div class="code-card"><div class="code-label">PHP · core</div><pre><code>{phpExample}</code></pre></div>
@@ -154,6 +159,7 @@ $displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
   .beta-card a, .text-link { color: #075985; font-weight: 750; }
   .section { padding: 5rem 0; border-top: 1px solid #cbd5e1; }
   .section-heading { max-width: 40rem; margin-bottom: 2rem; }
+  .section-intro { max-width: 38rem; color: #334155; line-height: 1.6; }
   .concept-grid, .install-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
   .concept-card, .install-card { min-width: 0; padding: 1.5rem; border: 1px solid #cbd5e1; border-radius: 0.6rem; background: #fff; }
   .concept-number { color: #0369a1; font-family: monospace; font-size: 0.8rem; font-weight: 700; }
@@ -186,6 +192,7 @@ $displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
     :global(body) { color: #e2e8f0; background: #020617; }
     .brand, h1, h2, h3 { color: #e2e8f0; }
     .site-header nav, .lede, .beta-card p, .concept-card p, .install-card p, .example-copy p, .fine-print, .site-footer { color: #94a3b8; }
+    .section-intro { color: #94a3b8; }
     .site-header nav a:hover, .text-link, .site-footer a { color: #7dd3fc; }
     .button-secondary { border-color: #475569; color: #bae6fd; }
     .button-secondary:hover { border-color: #38bdf8; background: #1e293b; }

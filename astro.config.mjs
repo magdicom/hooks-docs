@@ -27,32 +27,33 @@ export default defineConfig({
           items: [
             { label: 'Installation', slug: 'docs/2.x/installation' },
             { label: 'Concepts', slug: 'docs/2.x/concepts' },
-            {
-              label: 'Hook Types',
-              items: [
-                { label: 'Actions', slug: 'docs/2.x/actions' },
-                { label: 'Filters', slug: 'docs/2.x/filters' },
-                { label: 'Collectors', slug: 'docs/2.x/collectors' },
-              ],
-            },
-            {
-              label: 'Processing Results',
-              items: [
-                { label: 'Processors', slug: 'docs/2.x/processors' },
-                { label: 'Renderers', slug: 'docs/2.x/renderers' },
-              ],
-            },
-            {
-              label: 'Integrations',
-              items: [{ label: 'Laravel', slug: 'docs/2.x/laravel' }],
-            },
-            {
-              label: 'Reference',
-              items: [
-                { label: 'API', slug: 'docs/2.x/api' },
-                { label: 'Upgrade Guide', slug: 'docs/2.x/upgrade' },
-              ],
-            },
+          ],
+        },
+        { label: 'Use Cases', slug: 'docs/2.x/use-cases' },
+        {
+          label: 'Hook Types',
+          items: [
+            { label: 'Actions', slug: 'docs/2.x/actions' },
+            { label: 'Filters', slug: 'docs/2.x/filters' },
+            { label: 'Collectors', slug: 'docs/2.x/collectors' },
+          ],
+        },
+        {
+          label: 'Processing Results',
+          items: [
+            { label: 'Processors', slug: 'docs/2.x/processors' },
+            { label: 'Renderers', slug: 'docs/2.x/renderers' },
+          ],
+        },
+        {
+          label: 'Integrations',
+          items: [{ label: 'Laravel', slug: 'docs/2.x/laravel' }],
+        },
+        {
+          label: 'Reference',
+          items: [
+            { label: 'API', slug: 'docs/2.x/api' },
+            { label: 'Upgrade Guide', slug: 'docs/2.x/upgrade' },
           ],
         },
       ],

@@ -29,11 +29,11 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addFilter('title.display', static function (string $title, string $locale): string {
+$hooks->addFilter('email.subject', static function (string $title, string $locale): string {
     return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
 });
 
-$displayTitle = $hooks->applyFilters('title.display', 'Release notes', 'en');
+$displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
 ```
 
 The first callback receives `'Release notes'` as `$title` and `'en'` as `$locale`. A later callback receives the first callback's returned string as its new `$title`.
@@ -51,10 +51,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addFilter('slug', static fn (string $value): string => trim($value));
-$hooks->addFilter('slug', static fn (string $value): string => strtolower($value), priority: 20);
+$hooks->addFilter('email.subject', static fn (string $value): string => trim($value));
+$hooks->addFilter('email.subject', static fn (string $value): string => strtolower($value), priority: 20);
 
-$slug = $hooks->applyFilters('slug', '  Hooks Docs  ');
+$subject = $hooks->applyFilters('email.subject', '  Hooks Docs  ');
 // 'hooks docs'
 ```
 
@@ -77,10 +77,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addFilter('title.display', static fn (string $title): string => strtoupper($title));
+$handle = $hooks->addFilter('email.subject', static fn (string $title): string => strtoupper($title));
 $handle->remove();
 
-$title = $hooks->applyFilters('title.display', 'Release notes');
+$title = $hooks->applyFilters('email.subject', 'Release notes');
 // 'Release notes'
 ```
 

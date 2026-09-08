@@ -86,3 +86,13 @@ The manually triggered workflow remains available for the next approved deployme
 ## Deployment readiness boundary
 
 The repository is pushed to `magdicom/hooks-docs` and production is live. The workflow still requires the protected `production` environment, six deployment secrets, and manual approval; it does not deploy automatically on push.
+
+## Practical use cases pass
+
+The Use Cases guide was added on 2026-09-08 at `/docs/2.x/use-cases/` and placed after Concepts in the visible sidebar. It covers invoice-paid actions, sequential invoice-total filters, dashboard widgets, extensible payment methods, navigation rendering, boolean checkout decisions, and Laravel container-resolved callbacks. The homepage now links to this guide from its Common use cases section.
+
+Public examples now use meaningful lowercase dot-separated hook names such as `invoice.paid`, `invoice.total`, `dashboard.widgets`, `navigation.items`, and `checkout.allowed`. This is documented as a recommended convention rather than a package restriction. The released core uses exact string keys without normalization, so hook names are case-sensitive and should be treated as stable public contracts. The requested `checkout.payment_methods` example is retained verbatim as the payment-method capability identifier.
+
+Short PHP snippets no longer repeat `declare(strict_types=1);`. Complete-file examples retain it where appropriate, and the documentation explains that strict types are an application choice rather than a Hooks requirement. Route, sidebar, link, hook-name, PHP-method, and preview-smoke validation now includes the Use Cases page; validation no longer requires every PHP block to contain a strict-types declaration.
+
+The page's renderer example was checked against `ConcatenateRenderer` from `magdicom/hooks` `v2.0.0-beta.1`: collector results are joined in order, supported scalar/string/null/Stringable values are accepted, empty results produce an empty string, and unsupported values raise `UnexpectedValueException`. The `BooleanAndProcessor` example likewise documents strict boolean results and `true` for an empty result list.

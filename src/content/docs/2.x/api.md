@@ -30,15 +30,15 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addAction('profile.saved', static function (int $profileId): void {
+$hooks->addAction('profile.updated', static function (int $profileId): void {
     // Runs first.
 }, priority: 5);
 
-$hooks->addAction('profile.saved', static function (int $profileId): void {
+$hooks->addAction('profile.updated', static function (int $profileId): void {
     // Runs second.
 });
 
-$hooks->doAction('profile.saved', 42);
+$hooks->doAction('profile.updated', 42);
 ```
 
 The returned `RegistrationHandle` identifies that exact registration, including its hook point, type, priority, and registration id.
@@ -66,7 +66,7 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$handle = $hooks->addFilter('title', static fn (string $value): string => strtoupper($value));
+$handle = $hooks->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
 
 $handle->remove(); // true
 $handle->remove(); // false
@@ -102,12 +102,12 @@ use Magdicom\Hooks;
 $hooks = new Hooks();
 $callback = static fn (string $value): string => trim($value);
 
-$hooks->addFilter('slug', $callback, priority: 20);
+$hooks->addFilter('email.subject', $callback, priority: 20);
 
-$hasAny = $hooks->has('slug');
-$hasFilter = $hooks->hasFilter('slug');
-$hasExactPriority = $hooks->hasFilter('slug', $callback, priority: 20);
-$hasWrongPriority = $hooks->hasFilter('slug', $callback, priority: 10);
+$hasAny = $hooks->has('email.subject');
+$hasFilter = $hooks->hasFilter('email.subject');
+$hasExactPriority = $hooks->hasFilter('email.subject', $callback, priority: 20);
+$hasWrongPriority = $hooks->hasFilter('email.subject', $callback, priority: 10);
 ```
 
 `count()` counts registrations across all hook types, optionally limited to one hook point. `listeners()` returns handles for every type at the point. `actions()`, `filters()`, and `collectors()` return handles for the corresponding exact type, all in dispatch order.
@@ -153,12 +153,12 @@ $late = static function (): void {
     // Added during dispatch, so it does not run in that same snapshot.
 };
 
-$hooks->addAction('sync', static function () use ($hooks, $late): void {
-    $hooks->addAction('sync', $late);
+$hooks->addAction('order.cancelled', static function () use ($hooks, $late): void {
+    $hooks->addAction('order.cancelled', $late);
 });
 
-$hooks->doAction('sync');
-$hooks->doAction('sync'); // The new listener is available here.
+$hooks->doAction('order.cancelled');
+$hooks->doAction('order.cancelled'); // The new listener is available here.
 ```
 
 Nested `collect()`, `process()`, and `render()` calls use their own snapshots. Exceptions reach the caller, and a later invocation can still use the registry.

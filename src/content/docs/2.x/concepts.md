@@ -52,11 +52,11 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addFilter('title.display', static function (string $title, string $locale): string {
+$hooks->addFilter('email.subject', static function (string $title, string $locale): string {
     return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
 });
 
-$displayTitle = $hooks->applyFilters('title.display', 'Release notes', 'en');
+$displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
 ```
 
 When no filter is registered, `applyFilters()` returns the value it was given. Priorities determine order; equal-priority filters run in registration order.
@@ -74,10 +74,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addCollector('dashboard.cards', static fn (string $userId): array => ['owner' => $userId]);
-$hooks->addCollector('dashboard.cards', static fn (string $userId): array => ['count' => 3]);
+$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
+$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
 
-$cards = $hooks->collect('dashboard.cards', 'user-42');
+$cards = $hooks->collect('dashboard.widgets', 'user-42');
 // [['owner' => 'user-42'], ['count' => 3]]
 ```
 

@@ -34,15 +34,15 @@ use Magdicom\Hooks;
 use Magdicom\Processor\FirstProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('menu.title', static fn (): string => 'Account');
-$hooks->addCollector('menu.title', static fn (): string => 'Settings');
-$hooks->setProcessor('menu.title', new FirstProcessor());
+$hooks->addCollector('navigation.items', static fn (): string => 'Account');
+$hooks->addCollector('navigation.items', static fn (): string => 'Settings');
+$hooks->setProcessor('navigation.items', new FirstProcessor());
 
-$title = $hooks->process('menu.title');
+$title = $hooks->process('navigation.items');
 // 'Account'
 ```
 
-Calling `collect('menu.title')` on the same endpoint still returns `['Account', 'Settings']`; `collect()` bypasses processor and renderer configuration.
+Calling `collect('navigation.items')` on the same endpoint still returns `['Account', 'Settings']`; `collect()` bypasses processor and renderer configuration.
 
 Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
 
@@ -75,11 +75,11 @@ use Magdicom\Hooks;
 use Magdicom\Processor\BooleanAndProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('feature.enabled', static fn (): bool => true);
-$hooks->addCollector('feature.enabled', static fn (): bool => false);
-$hooks->setProcessor('feature.enabled', new BooleanAndProcessor());
+$hooks->addCollector('checkout.allowed', static fn (): bool => true);
+$hooks->addCollector('checkout.allowed', static fn (): bool => false);
+$hooks->setProcessor('checkout.allowed', new BooleanAndProcessor());
 
-$enabled = $hooks->process('feature.enabled');
+$enabled = $hooks->process('checkout.allowed');
 // false
 ```
 
@@ -98,13 +98,13 @@ use Magdicom\Hooks;
 use Magdicom\ProcessingContext;
 
 $hooks = new Hooks();
-$hooks->addCollector('scores', static fn (): int => 8);
-$hooks->addCollector('scores', static fn (): int => 13);
-$hooks->setProcessor('scores', static function (array $results, ProcessingContext $context): int {
+$hooks->addCollector('report.scores', static fn (): int => 8);
+$hooks->addCollector('report.scores', static fn (): int => 13);
+$hooks->setProcessor('report.scores', static function (array $results, ProcessingContext $context): int {
     return array_sum($results);
 });
 
-$total = $hooks->process('scores');
+$total = $hooks->process('report.scores');
 // 21
 ```
 
@@ -162,8 +162,8 @@ final class AuditListener
 }
 
 $hooks = new Hooks();
-$hooks->addAction('audit', [AuditListener::class, 'record']);
-$hooks->doAction('audit', 'profile.updated');
+$hooks->addAction('audit.recorded', [AuditListener::class, 'record']);
+$hooks->doAction('audit.recorded', 'profile.updated');
 ```
 
 Resolver and callback exceptions bubble to the caller. The resolver is not a service container in the core package; Laravel applications get container-backed resolution from the separate Laravel wrapper.

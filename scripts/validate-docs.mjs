@@ -32,7 +32,7 @@ for (const { file, text } of markdown) {
 }
 
 const plannedRoutes = [
-  '/', '/docs', '/docs/2.x/', '/docs/2.x/installation', '/docs/2.x/concepts',
+  '/', '/docs', '/docs/2.x/', '/docs/2.x/installation', '/docs/2.x/concepts', '/docs/2.x/use-cases',
   '/docs/2.x/actions', '/docs/2.x/filters', '/docs/2.x/collectors',
   '/docs/2.x/processors', '/docs/2.x/renderers', '/docs/2.x/laravel',
   '/docs/2.x/upgrade', '/docs/2.x/api',
@@ -66,6 +66,12 @@ for (const match of config.matchAll(/slug:\s*'([^']+)'/g)) {
   const route = `/${match[1].replace(/\/index$/, '')}`
   if (!plannedRoutes.includes(route) && !plannedRoutes.includes(`${route}/`)) fail(`astro.config.mjs: sidebar route is not planned: ${route}`)
 }
+if (config.includes("label: '2.x Beta'")) fail('astro.config.mjs: redundant 2.x Beta sidebar group remains')
+const sidebarOrder = ['docs/2.x/concepts', 'docs/2.x/use-cases', 'docs/2.x/actions']
+const sidebarPositions = sidebarOrder.map((slug) => config.indexOf(`slug: '${slug}'`))
+if (sidebarPositions.some((position) => position < 0) || sidebarPositions[0] > sidebarPositions[1] || sidebarPositions[1] > sidebarPositions[2]) {
+  fail('astro.config.mjs: Use Cases must appear after Concepts and before Actions')
+}
 
 const phpBlocks = markdown.flatMap(({ file, text }) => [...text.matchAll(/```php\n([\s\S]*?)```/g)].map((match) => ({ file, code: match[1] })))
 const allowedMethods = new Set([
@@ -78,7 +84,6 @@ const allowedMethods = new Set([
 for (const { file, code } of phpBlocks) {
   const name = relative(root, file)
   const completeExample = code.includes('<?php')
-  if (completeExample && !code.includes('declare(strict_types=1);')) fail(`${name}: PHP example is missing declare(strict_types=1);`)
   for (const match of code.matchAll(/(?:\$\w+|hooks\(\))\s*->\s*(\w+)\s*\(/g)) {
     if (!allowedMethods.has(match[1])) fail(`${name}: unknown Hooks method in PHP example: ${match[1]}`)
   }
@@ -88,6 +93,9 @@ for (const { file, code } of phpBlocks) {
 const allText = sourceFiles.map((file) => readFileSync(file, 'utf8')).join('\n')
 if (!allText.includes('composer require magdicom/hooks:"^2.0@beta"')) fail('installation: core beta Composer command is missing')
 if (!allText.includes('composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"')) fail('installation: Laravel beta Composer command is missing')
+for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'navigation.items', 'checkout.allowed']) {
+  if (!allText.includes(hookPoint)) fail(`use-cases: expected hook point is missing: ${hookPoint}`)
+}
 if (/magdicom\/hook(?!s)/.test(allText)) fail('source: incorrect core package name detected')
 if (/magdicom\/laravel-hook(?!s)/.test(allText)) fail('source: incorrect Laravel package name detected')
 

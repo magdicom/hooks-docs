@@ -85,10 +85,10 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addCollector('dashboard.cards', static fn (): array => ['owner']);
-$hooks->addCollector('dashboard.cards', static fn (): array => ['activity']);
+$hooks->addCollector('dashboard.widgets', static fn (): array => ['owner']);
+$hooks->addCollector('dashboard.widgets', static fn (): array => ['activity']);
 
-$cards = $hooks->collect('dashboard.cards');
+$cards = $hooks->collect('dashboard.widgets');
 // [['owner'], ['activity']]
 ```
 
@@ -100,7 +100,7 @@ For result lists, the migration is:
 
 ```php
 // Version 2
-$results = $hooks->collect('dashboard.cards');
+$results = $hooks->collect('dashboard.widgets');
 ```
 
 This replaces both old `all()` result gathering and `all()->toArray()`. If you need a merged or flattened shape, configure a collector processor such as `MergeProcessor` or `FlattenProcessor`, or transform the raw array yourself. `collect()` never merges entries automatically.
@@ -119,14 +119,14 @@ use Magdicom\Processor\FirstProcessor;
 use Magdicom\Processor\LastProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('banner', static fn (): string => 'Primary');
-$hooks->addCollector('banner', static fn (): string => 'Fallback');
+$hooks->addCollector('checkout.banner', static fn (): string => 'Primary');
+$hooks->addCollector('checkout.banner', static fn (): string => 'Fallback');
 
-$hooks->setProcessor('banner', new FirstProcessor());
-$first = $hooks->process('banner');
+$hooks->setProcessor('checkout.banner', new FirstProcessor());
+$first = $hooks->process('checkout.banner');
 
-$hooks->setProcessor('banner', new LastProcessor());
-$last = $hooks->process('banner');
+$hooks->setProcessor('checkout.banner', new LastProcessor());
+$last = $hooks->process('checkout.banner');
 ```
 
 `FirstProcessor` and `LastProcessor` return `null` for an empty result list. Selection is a collector decision; actions and filters do not have `first()` or `last()` methods.
@@ -143,11 +143,11 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addFilter('price', static function (int $price, string $currency): int {
+$hooks->addFilter('invoice.total', static function (int $price, string $currency): int {
     return $currency === 'USD' ? $price : $price + 1;
 });
 
-$price = $hooks->applyFilters('price', 100, 'USD');
+$price = $hooks->applyFilters('invoice.total', 100, 'USD');
 ```
 
 For a larger shared input, pass one typed context object as an explicit argument:
@@ -188,11 +188,11 @@ use Magdicom\Hooks;
 use Magdicom\Processor\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('labels', static fn (): string => 'Hooks');
-$hooks->addCollector('labels', static fn (): string => 'Beta');
-$hooks->setRenderer('labels', new ConcatenateRenderer(' · '));
+$hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
+$hooks->addCollector('navigation.labels', static fn (): string => 'Beta');
+$hooks->setRenderer('navigation.labels', new ConcatenateRenderer(' · '));
 
-$output = $hooks->render('labels');
+$output = $hooks->render('navigation.labels');
 // 'Hooks · Beta'
 ```
 

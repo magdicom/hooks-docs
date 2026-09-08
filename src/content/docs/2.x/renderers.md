@@ -29,11 +29,11 @@ use Magdicom\Hooks;
 use Magdicom\Processor\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('navigation.links', static fn (): string => '<a href="/docs">Docs</a>');
-$hooks->addCollector('navigation.links', static fn (): string => '<a href="/api">API</a>');
-$hooks->setRenderer('navigation.links', new ConcatenateRenderer(separator: "\n"));
+$hooks->addCollector('navigation.items', static fn (): string => '<a href="/docs">Docs</a>');
+$hooks->addCollector('navigation.items', static fn (): string => '<a href="/api">API</a>');
+$hooks->setRenderer('navigation.items', new ConcatenateRenderer(separator: "\n"));
 
-$html = $hooks->render('navigation.links');
+$html = $hooks->render('navigation.items');
 ```
 
 `collect()` remains the raw operation even when a renderer is configured. `process()` and `render()` use the same collector result slot, so configure the endpoint for the operation your caller needs.
@@ -62,11 +62,11 @@ use Magdicom\Hooks;
 use Magdicom\Processor\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('labels', static fn (): string => 'Hooks');
-$hooks->addCollector('labels', static fn (): string => 'Beta');
-$hooks->setRenderer('labels', new ConcatenateRenderer(' · '));
+$hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
+$hooks->addCollector('navigation.labels', static fn (): string => 'Beta');
+$hooks->setRenderer('navigation.labels', new ConcatenateRenderer(' · '));
 
-$label = $hooks->render('labels');
+$label = $hooks->render('navigation.labels');
 // 'Hooks · Beta'
 ```
 
@@ -83,12 +83,12 @@ use Magdicom\Hooks;
 use Magdicom\ProcessingContext;
 
 $hooks = new Hooks();
-$hooks->addCollector('headings', static fn (): string => 'Introduction');
-$hooks->setRenderer('headings', static function (array $results, ProcessingContext $context): string {
+$hooks->addCollector('report.sections', static fn (): string => 'Introduction');
+$hooks->setRenderer('report.sections', static function (array $results, ProcessingContext $context): string {
     return implode(' / ', $results);
 });
 
-$heading = $hooks->render('headings');
+$heading = $hooks->render('report.sections');
 ```
 
 A class-name renderer is resolved through the configured core `Resolver` and must implement `Renderer`. `new Hooks()` uses native `new $className()` resolution. Inject a custom resolver with `new Hooks($resolver)`; the Laravel wrapper supplies its container-backed resolver.

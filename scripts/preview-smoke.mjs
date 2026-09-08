@@ -15,7 +15,7 @@ process.on('exit', stop)
 process.on('SIGINT', () => { stop(); process.exit(130) })
 const finish = (code) => { stop(); process.exit(code) }
 
-const routes = ['/', '/docs', '/docs/2.x/', '/docs/2.x/installation', '/docs/2.x/concepts', '/docs/2.x/actions', '/docs/2.x/filters', '/docs/2.x/collectors', '/docs/2.x/processors', '/docs/2.x/renderers', '/docs/2.x/laravel', '/docs/2.x/upgrade', '/docs/2.x/api']
+const routes = ['/', '/docs', '/docs/2.x/', '/docs/2.x/installation', '/docs/2.x/concepts', '/docs/2.x/use-cases', '/docs/2.x/actions', '/docs/2.x/filters', '/docs/2.x/collectors', '/docs/2.x/processors', '/docs/2.x/renderers', '/docs/2.x/laravel', '/docs/2.x/upgrade', '/docs/2.x/api']
 let ready = false
 for (let attempt = 0; attempt < 40; attempt += 1) {
   try {
