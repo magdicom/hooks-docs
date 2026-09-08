@@ -1,4 +1,14 @@
-# Hooks documentation MVP QA
+# Hooks documentation QA
+
+## Visual and editorial pass
+
+This pass was prepared on 2026-09-08 for the live site at `https://hooks.momagdi.com`. It keeps the site on Astro + Starlight, preserves all versioned routes and verified examples, and leaves `robots.txt` blocking all crawlers until the revised live site is manually approved.
+
+The public theme now uses sky blue and slate tokens: light interactive `#0369a1`, hover `#075985`, decorative sky `#0ea5e9`, soft accent `#e0f2fe`, page background `#f8fafc`, ink `#0f172a`, secondary text `#334155`, and borders `#cbd5e1`. Dark mode uses `#020617` for the page, `#0f172a` for raised surfaces, `#1e293b` for secondary surfaces, `#e2e8f0` for primary text, `#94a3b8` for secondary text, `#7dd3fc` for links, `#38bdf8` for stronger accents, and `#334155` for borders. Primary buttons use dark blue with white text; focus rings use visible sky blue; prose links, selected navigation, code surfaces, tables, and cards use neutral slate support colors.
+
+The sidebar is now flat at the useful navigation level: Overview, Getting Started, Hook Types, Processing Results, Integrations, and Reference. The `2.x Beta` label remains in the header version selector, and the `/docs/2.x/` route structure is unchanged.
+
+Public copy was revised across the homepage, introduction, concepts, installation, actions, filters, collectors, processors, renderers, Laravel integration, API reference, upgrade guide, and 404 page. API names, signatures, exceptions, ordering, empty-list behavior, resolver behavior, and complete PHP examples were preserved.
 
 Final pre-production QA was run on 2026-09-08 from a clean dependency install using Node.js `v22.23.1` and npm `10.9.8`.
 
@@ -23,7 +33,7 @@ The build contains:
 - corrected GitHub edit links under `src/content/docs/`;
 - the original Hooks mark and `robots.txt`.
 
-The current robots policy disallows crawling because `hooks.momagdi.com` has not been deployed. It must be reviewed during the approved production deployment stage.
+The current robots policy disallows crawling even though `hooks.momagdi.com` is live. It must remain blocked until the revised live site is manually reviewed and approved.
 
 ## Browser QA evidence
 
@@ -50,7 +60,7 @@ The build contains no VitePress runtime or configuration.
 
 ## Final status
 
-The repository is ready for server provisioning, but not for production deployment. Keep `robots.txt` blocking crawling until the site is deployed and verified over HTTPS. No DNS, cPanel, SSL, SSH, deployment-secret, or production workflow configuration has been performed.
+The site is deployed and served over HTTPS. Keep `robots.txt` blocking crawling until the revised public site is approved. Do not change DNS, cPanel, SSL, SSH, or deployment secrets as part of this editorial pass.
 
 ## Documentation truth set
 
@@ -71,8 +81,8 @@ The workflow fails closed unless all six production secrets are non-empty, `DEPL
 
 `robots.txt` continues to disallow all crawlers. Indexing must not be enabled until the first live deployment has been manually accepted over HTTPS.
 
-The workflow is ready to run once the protected environment secrets contain the verified server values and the production environment approval rules allow the operator to proceed. No production deployment has been run by this QA pass.
+The manually triggered workflow remains available for the next approved deployment. This pass did not trigger it.
 
 ## Deployment readiness boundary
 
-The repository is pushed to `magdicom/hooks-docs`. Before the first run, verify the DNS target and SSL arrangement, confirm the exact cPanel document root and `hooksmomagdi` permissions, confirm the SSH port and pinned host key, populate the six protected `production` secrets, and confirm required GitHub environment reviewers. The workflow does not deploy automatically on push.
+The repository is pushed to `magdicom/hooks-docs` and production is live. The workflow still requires the protected `production` environment, six deployment secrets, and manual approval; it does not deploy automatically on push.

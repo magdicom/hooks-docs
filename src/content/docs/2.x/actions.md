@@ -1,15 +1,15 @@
 ---
 title: Actions
-description: Ordered synchronous side-effect hooks.
+description: Run ordered callbacks for synchronous side effects.
 ---
 
 # Actions
 
-Actions are synchronous, ordered notifications for side effects. Register a callback with `addAction()` and invoke the hook point with `doAction()`.
+Use an action when something should happen but the caller does not need a value back. Actions are synchronous and ordered: register callbacks with `addAction()`, then run them with `doAction()`.
 
-The behavior on this page is derived from the released implementation and tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#core-public-api-truth-set).
+For example, an order-created action can notify an integration and write an audit entry without coupling the order class to either detail.
 
-## Register and invoke
+## Register and run an action
 
 The core signature is:
 
@@ -17,7 +17,7 @@ The core signature is:
 addAction(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
 ```
 
-The callback receives the variadic arguments passed to `doAction()` in the same order:
+Callbacks receive the extra arguments passed to `doAction()`, in the same order:
 
 ```php
 <?php
@@ -35,9 +35,9 @@ $hooks->addAction('invoice.paid', static function (int $invoiceId, string $curre
 $hooks->doAction('invoice.paid', 42, 'USD');
 ```
 
-`doAction()` returns `void`. A callback's return value is ignored, so actions should communicate through their side effects rather than returning a value to the caller. The method accepts any number of explicit arguments after the hook point.
+`doAction()` returns `void`. Callback return values are ignored, so use an action for side effects rather than for producing a value. You can pass any number of explicit arguments after the hook point.
 
-## Priority and order
+## Priority and ordering
 
 The default priority is `10`. Lower numeric priorities run first. When two listeners have the same priority, their registration order is preserved:
 
@@ -61,15 +61,15 @@ $hooks->addAction('cache.refresh', static function (): void {
 $hooks->doAction('cache.refresh');
 ```
 
-The registry dispatches a sorted listener snapshot. Adding or removing a listener from inside a callback does not change the listeners already selected for the current invocation; the mutation is visible to a later invocation. Exceptions bubble to the caller.
+Hooks takes a sorted snapshot before it starts. Adding or removing a listener inside a callback does not change the callbacks already selected for this run; the change is visible on the next run. Exceptions reach the caller.
 
 ## Empty actions
 
-Calling `doAction()` for a hook point with no listeners completes without side effects and returns `void`. It is safe to invoke an action before any package has registered a listener.
+Calling `doAction()` with no listeners is safe: nothing runs and the method returns `void`.
 
 ## Remove a registration
 
-`addAction()` returns a `RegistrationHandle`. Calling `remove()` removes that exact registration and returns `true`; calling it again returns `false`:
+`addAction()` returns a `RegistrationHandle`. Its `remove()` method removes that exact registration and returns `true`; calling it again returns `false`:
 
 ```php
 <?php
@@ -88,6 +88,6 @@ $handle->remove();
 $hooks->doAction('cache.refresh');
 ```
 
-The handle is tied to the `Hooks` instance that created it. For callback-based removal, use `removeAction($hookPoint, $callback, $priority)`, which removes the first matching callback of the requested type and priority. Use `removeAllActions(?string $hookPoint = null)` for bulk removal of action registrations.
+The handle belongs to the `Hooks` instance that created it. If you prefer callback-based removal, `removeAction($hookPoint, $callback, $priority)` removes the first matching callback at that priority. Use `removeAllActions(?string $hookPoint = null)` to remove action registrations in bulk.
 
 Actions do not transform values or collect results. Use [filters](/docs/2.x/filters) for a sequential value or [collectors](/docs/2.x/collectors) for one result per listener.

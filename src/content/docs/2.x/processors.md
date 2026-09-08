@@ -1,15 +1,15 @@
 ---
 title: Processors
-description: Process collected results with explicit collector processors.
+description: Turn collector results into the value your application needs.
 ---
 
 # Processors
 
-Processors reduce a collector's raw result list to another value. They are invoked by `process()` and receive both the raw results and a `ProcessingContext` containing the hook point and the original invocation arguments.
+Processors turn a collector's raw result list into the value your application needs. Call `process()` after configuring a processor; it receives the results and a `ProcessingContext` with the hook point and original arguments.
 
-The behavior on this page is derived from the released `magdicom/hooks` `v2.0.0-beta.1` implementation and tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#processing-and-rendering).
+Use a processor when callbacks contribute structured or boolean values that need a clear reduction step.
 
-Processors apply to collectors only. Actions return `void`, and filters already return their transformed value; neither type has a processor slot.
+Processors belong to collectors only. Actions return `void`, and filters already return their transformed value, so neither has a processor slot.
 
 ## Configure and process
 
@@ -23,7 +23,7 @@ clearProcessor(string $hookPoint): bool
 process(string $hookPoint, mixed ...$arguments): mixed
 ```
 
-`process()` first collects the listener results, then invokes the configured processor. It returns the processor output unchanged:
+`process()` collects listener results, invokes the configured processor, and returns its output unchanged:
 
 ```php
 <?php
@@ -42,13 +42,13 @@ $title = $hooks->process('menu.title');
 // 'Account'
 ```
 
-Calling `collect('menu.title')` on the same endpoint would still return `['Account', 'Settings']`; `collect()` bypasses the configured processor and renderer slots.
+Calling `collect('menu.title')` on the same endpoint still returns `['Account', 'Settings']`; `collect()` bypasses processor and renderer configuration.
 
-When no processor is configured, `process()` throws the released `MissingProcessorException`. `clearProcessor()` removes the configured slot and returns whether a slot existed. `setProcessor()` replaces the current slot for that collector endpoint.
+Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
 
 ## Released built-in processors
 
-All built-ins live under the `Magdicom\Processor` namespace and implement `ResultProcessor`. They receive `(array $results, ProcessingContext $context)`.
+The built-ins live under `Magdicom\Processor` and implement `ResultProcessor`. Each receives `(array $results, ProcessingContext $context)`.
 
 | Class | Input expectation | Return and empty-result behavior | Failure behavior |
 | --- | --- | --- | --- |
@@ -60,11 +60,11 @@ All built-ins live under the `Magdicom\Processor` namespace and implement `Resul
 | `MergeProcessor` | Every entry must be an array | `[]` for empty results; uses `array_merge()` semantics | `UnexpectedValueException` for a non-array entry |
 | `FlattenProcessor` | Every top-level entry must be an array | `[]` for empty results; flattens values by configured depth and discards keys | `InvalidArgumentException` for depth below `-1`; `UnexpectedValueException` for a non-array entry |
 
-`FlattenProcessor` defaults to depth `-1` for unlimited flattening. Depth `0` keeps nested arrays at the current level; any non-negative depth is reduced as nested arrays are traversed.
+`FlattenProcessor` defaults to depth `-1`, which means unlimited flattening. Depth `0` keeps nested arrays at the current level; non-negative depths control how far nested arrays are traversed.
 
 ## Built-in usage
 
-The processor receives the collector's raw results, not individual callbacks:
+The processor sees the collector's raw results, not callbacks one at a time:
 
 ```php
 <?php
@@ -83,7 +83,7 @@ $enabled = $hooks->process('feature.enabled');
 // false
 ```
 
-For `MergeProcessor` and `FlattenProcessor`, every collector must return an array. For boolean processors, a value of the wrong type throws instead of being coerced. These checks are part of the released implementation; callers should make the collector contract explicit.
+For `MergeProcessor` and `FlattenProcessor`, every collector must return an array. For boolean processors, a value of the wrong type throws instead of being coerced. Make that collector contract clear in your application.
 
 ## Processor callbacks and class names
 
@@ -108,7 +108,7 @@ $total = $hooks->process('scores');
 // 21
 ```
 
-A class-name processor is resolved and must implement `ResultProcessor`; otherwise the released `InvalidProcessorException` is thrown. The class name can be supplied with `SomeProcessor::class` and is resolved when the processor is invoked.
+A class-name processor is resolved when it is invoked and must implement `ResultProcessor`; otherwise `InvalidProcessorException` is thrown. Pass a class name such as `SomeProcessor::class` when you want the resolver to create it.
 
 See [renderers](/docs/2.x/renderers) for string-specific collector output, and [collectors](/docs/2.x/collectors) for raw collection semantics.
 
@@ -123,7 +123,7 @@ interface Resolver
 }
 ```
 
-`new Hooks()` uses `NativeResolver` automatically. Its released behavior is to instantiate a resolved class with `new $className()`. A custom resolver can be passed to `Hooks`:
+`new Hooks()` uses `NativeResolver` automatically, which creates a resolved class with `new $className()`. You can pass a custom resolver to `Hooks`:
 
 ```php
 <?php

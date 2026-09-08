@@ -1,17 +1,17 @@
 ---
 title: API reference
-description: Human-written Hooks 2.x public API reference.
+description: Signatures and return values for the Hooks 2.x public API.
 ---
 
 # API reference
 
-This page explains the released listener lifecycle behind [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), and [collectors](/docs/2.x/collectors). It focuses on registration, inspection, ordering, and removal rather than reproducing a reflection dump.
+Use this page when you need the exact public methods behind [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), and [collectors](/docs/2.x/collectors). It explains how to register, inspect, order, and remove callbacks, with signatures and return values in one place.
 
-The behavior documented here is derived from the released `magdicom/hooks` `v2.0.0-beta.1` implementation and focused tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#inspection-handles-and-removal).
+The signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta.1`. Start with the guide for your hook type, then use this page when you need a complete method summary.
 
 ## Registering listeners
 
-`Hooks` provides one registration method for each hook type:
+`Hooks` has one registration method for each hook type:
 
 ```php
 addAction(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
@@ -19,7 +19,7 @@ addFilter(string $hookPoint, array|callable $callback, int $priority = 10): Regi
 addCollector(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
 ```
 
-All registrations belong to the `Hooks` instance that created them. The default priority is `10`. Lower numeric priorities run first, and equal priorities retain registration order.
+Registrations belong to the `Hooks` instance that created them. The default priority is `10`. Lower numbers run first, and equal priorities retain registration order.
 
 ```php
 <?php
@@ -72,7 +72,7 @@ $handle->remove(); // true
 $handle->remove(); // false
 ```
 
-This exactness matters when equivalent callbacks or duplicate callbacks are registered. A handle identifies the registration returned by that particular `Hooks` object. `belongsTo($hooks)` reports exact object ownership, not merely equivalent configuration.
+This matters when you register equivalent or duplicate callbacks. A handle belongs to the particular `Hooks` object that returned it. `belongsTo($hooks)` checks that exact ownership rather than comparing configuration.
 
 ## Inspecting registrations
 
@@ -90,7 +90,7 @@ filters(string $hookPoint): array
 collectors(string $hookPoint): array
 ```
 
-`has()` checks whether any action, filter, or collector registration exists at a hook point. The type-specific methods restrict the check to one type. Omitting the callback checks for any registration of that type; providing a callback also matches its priority:
+`has()` checks whether any action, filter, or collector exists at a hook point. The type-specific methods check one type. Omit the callback to ask whether anything of that type is registered; provide it to include callback and priority matching:
 
 ```php
 <?php
@@ -114,7 +114,7 @@ $hasWrongPriority = $hooks->hasFilter('slug', $callback, priority: 10);
 
 ## Type-aware removal
 
-Callback-based removal is deliberately type-aware:
+Removal by callback is type-aware:
 
 ```php
 removeAction(string $hookPoint, array|callable $callback, int $priority = 10): bool
@@ -122,7 +122,7 @@ removeFilter(string $hookPoint, array|callable $callback, int $priority = 10): b
 removeCollector(string $hookPoint, array|callable $callback, int $priority = 10): bool
 ```
 
-These methods remove the first matching callback of the requested type and priority. They do not accept a `RegistrationHandle`; call the handle's `remove()` method for exact registration-id removal. Callback matching compares callback identity and priority, so a callback registered as an action is not removed by `removeFilter()`.
+These methods remove the first matching callback of the requested type and priority. They do not accept a `RegistrationHandle`; call the handle's `remove()` method for exact registration-id removal. A callback registered as an action is not removed by `removeFilter()`.
 
 Bulk methods remove registrations and return the number removed:
 
@@ -137,9 +137,9 @@ Passing a hook point limits removal to that point. Omitting it removes the relev
 
 ## Priorities and snapshots
 
-The registry sorts listeners by ascending priority and then by monotonic registration id. This gives deterministic equal-priority ordering without relying on callback identity.
+Hooks sorts listeners by ascending priority and then by registration id. Equal-priority callbacks therefore run in a predictable order.
 
-Before dispatch, Hooks creates a sorted listener snapshot. Adding or removing registrations while a callback is running does not alter the listener list already selected for that invocation. The change is visible to a later invocation:
+Before dispatch, Hooks creates a sorted listener snapshot. Adding or removing registrations while a callback runs does not alter the list selected for that invocation. The change appears on a later invocation:
 
 ```php
 <?php
@@ -161,13 +161,13 @@ $hooks->doAction('sync');
 $hooks->doAction('sync'); // The new listener is available here.
 ```
 
-Nested `collect()`, `process()`, and `render()` calls use their own snapshots and remain isolated from the outer dispatch snapshot. Exceptions bubble to the caller; a later invocation can still use the registry.
+Nested `collect()`, `process()`, and `render()` calls use their own snapshots. Exceptions reach the caller, and a later invocation can still use the registry.
 
 For value transformation and raw result behavior, see the [hook type pages](/docs/2.x/concepts). Processor, renderer, resolver, and callback behavior is covered in the [advanced core reference](/docs/2.x/processors).
 
 ## Complete core method summary
 
-The following summary covers the released public methods on `Magdicom\Hooks`. Private implementation helpers are intentionally omitted.
+The following summary covers the public methods on `Magdicom\Hooks`. Private helpers are left out.
 
 ### Construction and dispatch
 
@@ -225,7 +225,7 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 
 ### Operational methods
 
-These released public methods are secondary diagnostics rather than dispatch APIs:
+These public methods provide diagnostics rather than dispatch:
 
 | Method | Purpose and return value | Applies to |
 | --- | --- | --- |
@@ -233,11 +233,11 @@ These released public methods are secondary diagnostics rather than dispatch API
 | `setSourceFile(?string $path = null): self` | Stores an optional source-file label and returns the same Hooks object. | Core registry diagnostics |
 | `getSourceFile(): string` | Returns the configured source-file label, or `'Unknown'` when none was set. | Core registry diagnostics |
 
-These methods do not change action, filter, or collector semantics. The debug callback and source label are operational metadata; they are not a replacement for explicit hook arguments or application logging.
+These methods do not change action, filter, or collector behavior. The debug callback and source label are metadata, not a replacement for explicit arguments or application logging.
 
 ## Supporting public contracts
 
-The core contracts used by processors, renderers, and class callbacks are:
+Processors, renderers, and class callbacks use these core contracts:
 
 ```php
 interface Resolver
@@ -264,13 +264,13 @@ hookPoint(): string
 arguments(): array
 ```
 
-The constructor stores the original invocation arguments as a list. `RegistrationHandle` exposes the lifecycle methods documented above. `NativeResolver::resolve(string $className): object` constructs the class with `new $className()`; the Laravel wrapper replaces this with container-backed resolution.
+The `ProcessingContext` constructor stores the original invocation arguments as a list. `RegistrationHandle` exposes the lifecycle methods above. `NativeResolver::resolve(string $className): object` creates a class with `new $className()`; the Laravel wrapper replaces this with container-backed resolution.
 
 `RegistrationHandle::__construct(...)` is public in the released class but is an implementation-created value: normal callers should obtain handles from `addAction()`, `addFilter()`, or `addCollector()` rather than constructing one. Its internal remover closure preserves exact registration-id behavior.
 
 ## Laravel surface
 
-The Laravel wrapper does not introduce a second dispatch API. Its public access surface resolves the same core object:
+The Laravel wrapper does not add a second dispatch API. Its access points resolve the same core object:
 
 - `hooks(): Magdicom\Hooks` returns the shared singleton and accepts no arguments;
 - `app(Magdicom\Hooks::class)` resolves the typed singleton;

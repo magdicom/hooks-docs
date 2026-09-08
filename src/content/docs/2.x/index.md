@@ -1,38 +1,38 @@
 ---
 title: Introduction
-description: Introduction to the Hooks 2.x Beta documentation.
+description: Learn how to add clear, synchronous extension points to a PHP application.
 ---
 
 # Hooks 2.x Beta
 
-Hooks is a small, synchronous extension-point library for modern PHP applications. It gives an application named places where other code can register an action, transform a value, or contribute an independent result.
+Hooks lets your application expose named places where other code can participate without changing the original class. These places are called hook points. A hook point can run side effects, transform a value, or gather contributions from several callbacks.
 
-The core package is framework-independent. The optional Laravel package adds Laravel-native access through auto-discovery, the container, a facade, and the `hooks()` helper. The wrapper does not change the core model: a hook is still explicit, ordered, and deterministic.
+The core package is framework-independent and synchronous. If you use Laravel, the optional integration adds auto-discovery, container-backed resolution, a facade, and the `hooks()` helper. The underlying model stays the same: callbacks run in a clear order, during the current call.
 
-This site documents the released `magdicom/hooks` `v2.0.0-beta.1` and `magdicom/laravel-hooks` `v2.0.0-beta.2` tags. The [released source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md) records the package metadata, implementation, and focused tests used as the documentation authority.
+This site covers `magdicom/hooks` `v2.0.0-beta.1` and `magdicom/laravel-hooks` `v2.0.0-beta.2`. The [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md) links the package metadata, implementation, and tests behind these pages.
 
 ## When Hooks fit
 
-Use Hooks when a named extension point should be available to code that does not need to know every consumer in advance:
+Hooks is a good fit when you want a named extension point without making the original class know about every integration:
 
-- use an **action** for ordered side effects where callback return values are not part of the result;
-- use a **filter** when each listener should transform the current value into the next value;
-- use a **collector** when every listener should contribute one result for the caller to inspect or process.
+- use an **action** when callbacks should perform side effects and their return values do not matter;
+- use a **filter** when each callback should turn the current value into the next value;
+- use a **collector** when you want one result from each callback.
 
-Dispatch is synchronous. The caller does not enqueue work or hand execution to a worker; listeners run during the invocation, in priority and registration order. Exceptions bubble to the caller, and an invocation uses a listener snapshot so mutations affect later invocations rather than the current one.
+Everything happens during the call. Hooks does not queue work or hand it to a worker. Callbacks run by priority and registration order, exceptions reach the caller, and changes made during a callback take effect on a later invocation rather than changing the current listener list.
 
 ## When another abstraction fits better
 
-Hooks are intentionally narrower than framework event and pipeline systems.
+Hooks is deliberately smaller in scope than Laravel's event and pipeline systems.
 
 - Choose **Laravel Events** for domain events, queued listeners, broadcasting, and other Laravel event workflows.
 - Choose **Laravel Pipeline** for a known middleware-like transformation chain where each pipe passes control to the next pipe.
 - Choose **Hooks** for named synchronous extension points, ordered filters, and independent result collection.
 
-Hooks is not a replacement for Laravel Events or Pipeline. In a framework-independent package, the core package can provide extension points without requiring Laravel; in a Laravel application, use the wrapper only where that explicit hook model is useful.
+Hooks is not a replacement for Laravel Events or Pipeline. Use the abstraction that matches the job: the core package gives any PHP application named extension points, while the Laravel wrapper adds convenient Laravel access where you need it.
 
 ## Beta status
 
-The 2.x documentation describes beta releases. Pin and test the package versions that your application supports, and review the [upgrade guide](/docs/2.x/upgrade) before moving from version 1. The current packages are not documented as stable releases.
+The 2.x packages are beta releases. Pin and test the versions your application supports, and read the [upgrade guide](/docs/2.x/upgrade) before moving from version 1. These pages describe the beta API, not a stable release contract.
 
 Continue with [installation](/docs/2.x/installation) or compare the [three hook types](/docs/2.x/concepts).

@@ -1,13 +1,13 @@
 ---
 title: Filters
-description: Sequential value transformations.
+description: Pass a value through an ordered sequence of transformations.
 ---
 
 # Filters
 
-Filters apply a sequence of value transformations. Register listeners with `addFilter()` and provide the starting value to `applyFilters()`.
+Use a filter when several parts of your application may adjust the same value. Register callbacks with `addFilter()`, pass the starting value to `applyFilters()`, and use the returned value.
 
-The behavior on this page is derived from the released implementation and tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#core-public-api-truth-set).
+A useful example is a display title that different integrations can localize or annotate.
 
 ## Register and apply
 
@@ -18,7 +18,7 @@ addFilter(string $hookPoint, array|callable $callback, int $priority = 10): Regi
 applyFilters(string $hookPoint, mixed $value, mixed ...$arguments): mixed
 ```
 
-The current filtered value is always the first callback argument. Additional invocation arguments follow it:
+The current value is always the first callback argument. Any additional arguments follow it:
 
 ```php
 <?php
@@ -36,11 +36,11 @@ $hooks->addFilter('title.display', static function (string $title, string $local
 $displayTitle = $hooks->applyFilters('title.display', 'Release notes', 'en');
 ```
 
-The first callback receives `'Release notes'` as `$title` and `'en'` as `$locale`. If another listener follows it, that listener receives the first listener's returned string as its `$title`.
+The first callback receives `'Release notes'` as `$title` and `'en'` as `$locale`. A later callback receives the first callback's returned string as its new `$title`.
 
 ## Sequential transformation
 
-Each callback return value becomes the current value for the next callback. A filter can therefore be composed from small transformations:
+Each callback returns the value passed to the next callback. That lets you keep each transformation small:
 
 ```php
 <?php
@@ -58,15 +58,15 @@ $slug = $hooks->applyFilters('slug', '  Hooks Docs  ');
 // 'hooks docs'
 ```
 
-Lower priorities run first. Equal-priority filters retain registration order. The default priority is `10`; specify another priority only when the ordering is part of the extension point's contract.
+Lower priorities run first. Equal-priority filters keep registration order. The default is `10`; choose another priority when the order is part of your hook point's contract.
 
 ## Empty filters
 
-When no filter listener exists, `applyFilters()` returns the original `$value` unchanged. Additional arguments are not transformed or consumed by the Hooks object; they are only passed to registered callbacks.
+With no listeners, `applyFilters()` returns the original `$value`. Hooks does not transform or consume the additional arguments; it only passes them to registered callbacks.
 
 ## Remove a filter
 
-`addFilter()` returns a `RegistrationHandle` for exact registration removal:
+`addFilter()` returns a `RegistrationHandle`, which is the simplest way to remove one exact registration:
 
 ```php
 <?php
@@ -84,6 +84,6 @@ $title = $hooks->applyFilters('title.display', 'Release notes');
 // 'Release notes'
 ```
 
-The handle's `remove()` method returns `true` once and `false` after the registration has already been removed. Callback-based `removeFilter()` matches the requested callback and priority; `removeAllFilters(?string $hookPoint = null)` removes all filter registrations for one point or, when omitted, all filter registrations.
+The handle's `remove()` method returns `true` once and `false` after removal. Callback-based `removeFilter()` matches the callback and priority. `removeAllFilters(?string $hookPoint = null)` removes filters for one point or, when omitted, all filter registrations.
 
 Use [actions](/docs/2.x/actions) when return values are irrelevant, and [collectors](/docs/2.x/collectors) when each listener should keep an independent result.

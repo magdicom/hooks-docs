@@ -1,13 +1,13 @@
 ---
 title: Renderers
-description: Render collector results as strings.
+description: Turn collector results into formatted strings.
 ---
 
 # Renderers
 
-Renderers turn a collector's raw results into a string. They are a specialized processor used by `render()` and apply to collectors only.
+Renderers turn a collector's results into a string. Use one when callback results need to become text, such as a list of labels or a short piece of markup. Renderers apply to collectors only.
 
-The behavior on this page is derived from the released `magdicom/hooks` `v2.0.0-beta.1` implementation and tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#processing-and-rendering).
+Configure a renderer with `setRenderer()` and call `render()` when the caller needs formatted output.
 
 ## Configure and render
 
@@ -38,11 +38,11 @@ $html = $hooks->render('navigation.links');
 
 `collect()` remains the raw operation even when a renderer is configured. `process()` and `render()` use the same collector result slot, so configure the endpoint for the operation your caller needs.
 
-When no renderer is configured, `render()` throws `MissingRendererException`. A class-name renderer must resolve to an implementation of `Renderer`; an invalid implementation raises `InvalidRendererException`. A callable renderer that returns a non-string also raises `InvalidRendererException`.
+Without a configured renderer, `render()` throws `MissingRendererException`. A class-name renderer must resolve to `Renderer`; an invalid implementation raises `InvalidRendererException`. A callable renderer that returns a non-string raises the same exception.
 
 ## `ConcatenateRenderer`
 
-The released built-in class is `Magdicom\Processor\ConcatenateRenderer`:
+The built-in `Magdicom\Processor\ConcatenateRenderer` joins rendered entries with a separator:
 
 ```php
 final class ConcatenateRenderer implements Renderer
@@ -51,7 +51,7 @@ final class ConcatenateRenderer implements Renderer
 }
 ```
 
-It joins rendered entries with the configured separator. It accepts `null` (rendered as an empty string), strings, scalar values, and `Stringable` objects. An unsupported value throws `UnexpectedValueException`. An empty result list renders as an empty string.
+It accepts `null` (as an empty string), strings, scalar values, and `Stringable` objects. An unsupported value throws `UnexpectedValueException`. An empty result list renders as an empty string.
 
 ```php
 <?php
@@ -91,6 +91,6 @@ $hooks->setRenderer('headings', static function (array $results, ProcessingConte
 $heading = $hooks->render('headings');
 ```
 
-A class-name renderer is resolved through the configured core `Resolver` and must implement `Renderer`. `new Hooks()` uses native `new $className()` resolution. A custom resolver can be injected through `new Hooks($resolver)`; the Laravel wrapper supplies its container-backed resolver separately.
+A class-name renderer is resolved through the configured core `Resolver` and must implement `Renderer`. `new Hooks()` uses native `new $className()` resolution. Inject a custom resolver with `new Hooks($resolver)`; the Laravel wrapper supplies its container-backed resolver.
 
 Renderers do not apply to actions or filters. Use [processors](/docs/2.x/processors) for non-string reductions and [collectors](/docs/2.x/collectors) for unprocessed result lists.

@@ -1,13 +1,13 @@
 ---
 title: Concepts
-description: Choose between actions, filters, collectors, events, and pipelines.
+description: Choose the right Hooks type for side effects, value changes, or collected results.
 ---
 
 # Concepts
 
-Hooks has three hook types. Select the type based on what the caller should receive after synchronous dispatch.
+# Choose a hook type
 
-The behavior summarized here is derived from the released implementation and focused tests in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#core-public-api-truth-set).
+Start with what the caller needs back. Actions do something, filters return one changed value, and collectors return every callback's contribution. All three are synchronous and ordered.
 
 | Type | Listener input | Listener return | Empty-listener behavior | Use it for |
 | --- | --- | --- | --- | --- |
@@ -15,9 +15,9 @@ The behavior summarized here is derived from the released implementation and foc
 | [Filter](/docs/2.x/filters) | The current value first, then explicit variadic arguments | Becomes the next current value | `applyFilters()` returns the original value | Sequential value transformation |
 | [Collector](/docs/2.x/collectors) | The explicit variadic invocation arguments | One raw result per listener | `collect()` returns `[]` | Independent contributions that the caller can inspect or process |
 
-All three types support priorities. The default priority is `10`; lower numeric priorities run first, and equal priorities retain registration order. A registration returns a handle that can later remove that exact registration.
+All three types support priorities. The default is `10`; lower numbers run first, and equal priorities keep registration order. Each registration returns a handle, so you can remove that exact callback later.
 
-## Actions: ordered side effects
+## Actions: do something
 
 An action callback receives the arguments passed to `doAction()`. Its return value is intentionally ignored:
 
@@ -37,9 +37,9 @@ $hooks->addAction('invoice.paid', static function (int $invoiceId): void {
 $hooks->doAction('invoice.paid', 42);
 ```
 
-With no action listeners, `doAction()` completes without doing anything and returns `void`. Use an action when the caller should trigger side effects, not when it needs a transformed value or a collection of callback results.
+With no listeners, `doAction()` simply returns `void`. Use an action when the caller needs to trigger work, not when it needs a transformed value or a list of results.
 
-## Filters: sequential transformations
+## Filters: change one value
 
 The current value is always the first callback argument. Any additional arguments passed to `applyFilters()` follow it. Each callback's return value becomes the value given to the next callback:
 
@@ -59,9 +59,9 @@ $hooks->addFilter('title.display', static function (string $title, string $local
 $displayTitle = $hooks->applyFilters('title.display', 'Release notes', 'en');
 ```
 
-When no filter is registered, `applyFilters()` returns the original value unchanged. Priorities determine order; equal-priority filters run in registration order.
+When no filter is registered, `applyFilters()` returns the value it was given. Priorities determine order; equal-priority filters run in registration order.
 
-## Collectors: independent results
+## Collectors: gather contributions
 
 A collector invokes each listener with the explicit arguments and returns one raw array entry per listener:
 
@@ -81,7 +81,7 @@ $cards = $hooks->collect('dashboard.cards', 'user-42');
 // [['owner' => 'user-42'], ['count' => 3]]
 ```
 
-`collect()` does not automatically flatten, merge, or otherwise process the raw results. With no listeners it returns `[]`. Use `process()` or `render()` when a collector has a configured processor or renderer; those operations are covered in [processors](/docs/2.x/processors) and [renderers](/docs/2.x/renderers).
+`collect()` leaves the raw results alone. It does not flatten or merge them, and returns `[]` when there are no listeners. If you need to reduce or format those results, use `process()` or `render()`; see [processors](/docs/2.x/processors) and [renderers](/docs/2.x/renderers).
 
 ## A quick decision guide
 

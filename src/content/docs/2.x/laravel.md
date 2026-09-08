@@ -1,13 +1,13 @@
 ---
 title: Laravel integration
-description: Use the Hooks core package through the Laravel integration.
+description: Use Hooks through Laravel's container, facade, and helper.
 ---
 
 # Laravel
 
-The optional `magdicom/laravel-hooks` package connects the framework-independent Hooks core to Laravel's container. It adds Laravel access paths and container-backed class resolution; the action, filter, collector, processor, and renderer APIs remain the core APIs documented elsewhere.
+The optional `magdicom/laravel-hooks` package connects the framework-independent Hooks core to Laravel's service container. It gives you familiar Laravel access points and container-backed class resolution; the action, filter, collector, processor, and renderer APIs remain the core APIs.
 
-This page documents `magdicom/laravel-hooks` `v2.0.0-beta.2` with `magdicom/hooks` `v2.0.0-beta.1`. The released implementation, package metadata, and integration tests are summarized in the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set).
+This page covers `magdicom/laravel-hooks` `v2.0.0-beta.2` with `magdicom/hooks` `v2.0.0-beta.1`. See the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set) for the package details behind these examples.
 
 ## Install and auto-discovery
 
@@ -17,13 +17,13 @@ Install both beta packages explicitly:
 composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"
 ```
 
-The wrapper advertises its service provider and facade alias through Composer package metadata. Laravel can therefore discover the integration without manually adding the provider to the application configuration.
+Composer package metadata advertises the service provider and facade alias, so Laravel discovers the integration without manual provider configuration.
 
-The wrapper requires PHP `^8.2`, Laravel Contracts/Support `^12.0 || ^13.0`, and the released core dependency. See [installation](/docs/2.x/installation) for the root-project prerelease guidance.
+The wrapper requires PHP `^8.2`, Laravel Contracts/Support `^12.0 || ^13.0`, and the matching core package. See [installation](/docs/2.x/installation) for the root-project beta guidance.
 
 ## Access the shared Hooks instance
 
-The service provider registers the core `Magdicom\Hooks` object as a singleton, aliases it as `hooks`, and provides the global `hooks()` helper. These access paths resolve the same application instance:
+The service provider registers `Magdicom\Hooks` as a singleton, aliases it as `hooks`, and provides the global `hooks()` helper. These access paths all return the same application instance:
 
 ```php
 <?php
@@ -40,7 +40,7 @@ assert($byClass === $byAlias);
 assert($byAlias === $byHelper);
 ```
 
-The helper takes no arguments and returns `Magdicom\Hooks`. Put invocation arguments on the Hooks method instead:
+The helper takes no arguments and returns `Magdicom\Hooks`. Put your invocation arguments on the Hooks method instead:
 
 ```php
 <?php
@@ -54,11 +54,11 @@ hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
 hooks()->doAction('invoice.paid', 42);
 ```
 
-Passing arguments to `hooks()` itself throws `InvalidArgumentException`. The arguments belong to `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`.
+Passing arguments to `hooks()` throws `InvalidArgumentException`. Pass those arguments to `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`.
 
 ## Facade
 
-The package provides `Magdicom\LaravelHooks\Facades\Hooks`. Alias it when the core class is also imported:
+The package provides `Magdicom\LaravelHooks\Facades\Hooks`. Give it an alias when you also import the core `Hooks` class:
 
 ```php
 <?php
@@ -74,11 +74,11 @@ HooksFacade::addFilter('profile.label', static function (string $label): string 
 $label = HooksFacade::applyFilters('profile.label', 'administrator');
 ```
 
-The facade resolves its root from the same shared container binding as `app(Magdicom\Hooks::class)` and `hooks()`.
+The facade uses the same container binding as `app(Magdicom\Hooks::class)` and `hooks()`.
 
 ## Dependency injection
 
-Because the core Hooks object is registered in the container, application services can type-hint `Magdicom\Hooks`:
+Because the core object is in the container, your services can type-hint `Magdicom\Hooks`:
 
 ```php
 <?php
@@ -100,11 +100,11 @@ final class ProfileLabel
 }
 ```
 
-`app(Magdicom\Hooks::class)`, `app('hooks')`, `hooks()`, facade calls, and constructor injection share the same singleton state within the Laravel application instance. Register listeners during stable application bootstrapping so every access path observes the intended registry.
+`app(Magdicom\Hooks::class)`, `app('hooks')`, `hooks()`, facade calls, and constructor injection share singleton state within the Laravel application. Register listeners during application boot so every access path sees the same registry.
 
 ## Container-backed resolver
 
-The wrapper binds a Laravel resolver for the core `Resolver` contract. Class callbacks, processors, and renderers resolved through the Hooks object can therefore use Laravel constructor injection. Static callable methods follow the core callable behavior and do not need container resolution.
+The wrapper binds a Laravel resolver for the core `Resolver` contract. Class callbacks, processors, and renderers can therefore use Laravel constructor injection. Static callable methods follow the core behavior and do not need container resolution.
 
 If an application or package needs to replace the resolver, rebind `Magdicom\Resolver` before `Magdicom\Hooks` is first resolved:
 
@@ -124,11 +124,11 @@ app()->bind(Resolver::class, static function (): Resolver {
 $hooks = app(Hooks::class);
 ```
 
-Once the Hooks singleton has been resolved, changing the `Resolver` binding does not replace the resolver already held by that existing Hooks instance. In a test, clear or refresh the application between resolver configurations when isolation is required.
+Set the resolver before `Magdicom\Hooks` is first resolved. Once the singleton exists, changing the binding does not replace the resolver already held by that instance. In tests, refresh the application between resolver configurations when you need isolation.
 
 ## Long-running application processes
 
-The registry is singleton state. In a normal short-lived request, the application lifecycle limits how long runtime registrations remain available. In Octane workers, queue workers, daemons, and other long-running processes, the same application instance can serve multiple jobs or requests.
+The registry lives on the singleton. A short-lived request naturally limits its lifetime, but Octane workers, queue workers, daemons, and other long-running processes can reuse the same instance for many jobs or requests.
 
 Use these practices for long-lived processes:
 
@@ -138,6 +138,6 @@ Use these practices for long-lived processes:
 - make worker and test boundaries explicit when registrations must not leak between jobs;
 - configure or replace the resolver before the Hooks singleton is first resolved.
 
-The package does not automatically reset registrations for every Octane request or worker job. Treat the shared registry as process-lifetime state until the application is refreshed or registrations are explicitly removed.
+The package does not reset registrations for each Octane request or worker job. Treat the shared registry as process-lifetime state until the application is refreshed or you remove registrations explicitly.
 
 For core hook semantics, see [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), [collectors](/docs/2.x/collectors), and the [API reference](/docs/2.x/api).

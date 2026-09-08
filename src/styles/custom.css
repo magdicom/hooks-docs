@@ -1,43 +1,55 @@
 :root {
-  --hooks-ink: #172033;
-  --hooks-muted: #526079;
-  --hooks-mint: #147d68;
-  --hooks-gold: #f2c879;
-  --sl-color-accent-low: #dff8ef;
-  --sl-color-accent: #147d68;
-  --sl-color-accent-high: #075343;
-  --sl-color-white: #172033;
-  --sl-color-gray-1: #263149;
-  --sl-color-gray-2: #526079;
-  --sl-color-gray-5: #c9d3d0;
-  --sl-color-gray-6: #e4ebe9;
-  --sl-color-bg: #ffffff;
+  --hooks-ink: #0f172a;
+  --hooks-muted: #334155;
+  --hooks-sky: #0369a1;
+  --hooks-sky-hover: #075985;
+  --hooks-sky-bright: #0ea5e9;
+  --hooks-soft: #e0f2fe;
+  --hooks-border: #cbd5e1;
+  --sl-color-accent-low: #e0f2fe;
+  --sl-color-accent: #0369a1;
+  --sl-color-accent-high: #075985;
+  --sl-color-white: #0f172a;
+  --sl-color-gray-1: #1e293b;
+  --sl-color-gray-2: #334155;
+  --sl-color-gray-5: #cbd5e1;
+  --sl-color-gray-6: #e2e8f0;
+  --sl-color-bg: #f8fafc;
   --sl-color-bg-nav: #ffffff;
-  --sl-color-bg-sidebar: #f7faf9;
+  --sl-color-bg-sidebar: #f1f5f9;
+  --sl-color-hairline-light: #cbd5e1;
 }
 
 :root[data-theme='dark'] {
-  --hooks-ink: #f5f7fb;
-  --hooks-muted: #a8b2c5;
-  --hooks-mint: #8ee6c8;
-  --hooks-gold: #f2c879;
-  --sl-color-accent-low: #123c35;
-  --sl-color-accent: #8ee6c8;
-  --sl-color-accent-high: #dff8ef;
-  --sl-color-white: #f5f7fb;
-  --sl-color-gray-1: #d0d7e5;
-  --sl-color-gray-2: #a8b2c5;
-  --sl-color-gray-5: #3d4c49;
-  --sl-color-gray-6: #273732;
-  --sl-color-bg: #101715;
-  --sl-color-bg-nav: #101715;
-  --sl-color-bg-sidebar: #16231f;
+  --hooks-ink: #e2e8f0;
+  --hooks-muted: #94a3b8;
+  --hooks-sky: #7dd3fc;
+  --hooks-sky-hover: #38bdf8;
+  --hooks-sky-bright: #38bdf8;
+  --hooks-soft: #1e293b;
+  --hooks-border: #334155;
+  --sl-color-accent-low: #0c4a6e;
+  --sl-color-accent: #7dd3fc;
+  --sl-color-accent-high: #bae6fd;
+  --sl-color-white: #e2e8f0;
+  --sl-color-gray-1: #e2e8f0;
+  --sl-color-gray-2: #94a3b8;
+  --sl-color-gray-5: #475569;
+  --sl-color-gray-6: #334155;
+  --sl-color-bg: #020617;
+  --sl-color-bg-nav: #0f172a;
+  --sl-color-bg-sidebar: #0f172a;
+  --sl-color-hairline-light: #334155;
 }
 
 :root {
   --sl-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --sl-font-system: var(--sl-font);
-  --sl-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --sl-color-text-accent: var(--hooks-sky);
+  --sl-color-text-invert: #ffffff;
+  --sl-color-bg-inline-code: var(--hooks-soft);
+  --sl-color-text-code: var(--hooks-sky-hover);
+  --sl-color-banner-bg: var(--hooks-soft);
 }
 
 html {
@@ -49,31 +61,32 @@ body {
 }
 
 ::selection {
-  color: var(--sl-color-white);
-  background: var(--sl-color-accent);
+  color: #ffffff;
+  background: var(--hooks-sky-hover);
 }
 
 :where(a, button, summary, select, input):focus-visible {
-  outline: 3px solid #f2c879;
+  outline: 3px solid var(--hooks-sky-bright);
   outline-offset: 3px;
 }
 
 .sl-markdown-content pre {
   max-width: 100%;
-  border: 1px solid var(--sl-color-gray-5);
-  box-shadow: 0 0.75rem 2rem color-mix(in srgb, #000 8%, transparent);
+  border: 1px solid var(--hooks-border);
+  box-shadow: 0 0.75rem 2rem rgb(15 23 42 / 9%);
 }
 
 .sl-markdown-content :not(pre) > code {
-  border: 1px solid var(--sl-color-gray-5);
+  border: 1px solid var(--hooks-border);
   border-radius: 0.3rem;
   padding: 0.12em 0.35em;
-  background: var(--sl-color-bg-sidebar);
+  background: var(--hooks-soft);
+  color: var(--hooks-sky-hover);
 }
 
 .sl-markdown-content blockquote {
-  border-inline-start-color: var(--sl-color-accent);
-  background: var(--sl-color-bg-sidebar);
+  border-inline-start-color: var(--hooks-sky-bright);
+  background: var(--hooks-soft);
 }
 
 .sl-markdown-content a {
