@@ -137,6 +137,7 @@ jobs:
           printf '%s\n' "$GITHUB_SHA" > "$sha_file"
 
           ssh_options=(-i "$ssh_key_file" -o UserKnownHostsFile="$known_hosts_file" -o StrictHostKeyChecking=yes -o BatchMode=yes -o IdentitiesOnly=yes -p "$DEPLOY_PORT")
+          scp_options=(-i "$ssh_key_file" -o UserKnownHostsFile="$known_hosts_file" -o StrictHostKeyChecking=yes -o BatchMode=yes -o IdentitiesOnly=yes -P "$DEPLOY_PORT")
           remote_incoming='/home/hooksmomagdi/.hooks-deploy/incoming'
           remote_archive="$remote_incoming/hooks-docs.tar.gz"
           remote_sha="$remote_incoming/hooks-docs.sha"
@@ -145,8 +146,8 @@ jobs:
           ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'umask 077; mkdir -p /home/hooksmomagdi/.hooks-deploy/incoming /home/hooksmomagdi/.hooks-deploy/releases /home/hooksmomagdi/.hooks-deploy/backups /home/hooksmomagdi/.hooks-deploy/records'
           test -s "$archive_file"
           test -s "$sha_file"
-          scp "${ssh_options[@]}" "$archive_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_archive"
-          scp "${ssh_options[@]}" "$sha_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_sha"
+          scp "${scp_options[@]}" "$archive_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_archive"
+          scp "${scp_options[@]}" "$sha_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_sha"
 
           ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' <<'REMOTE_SCRIPT'
           set -euo pipefail
