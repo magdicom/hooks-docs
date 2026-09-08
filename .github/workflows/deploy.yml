@@ -60,7 +60,7 @@ jobs:
 
           while IFS= read -r entry; do
             case "$entry" in
-              ""|./|./.|../*|*/../*|.git|.git/*|./.git|./.git/*|*/.git|*/.git/*|node_modules|node_modules/*|./node_modules|./node_modules/*|*/node_modules|*/node_modules/*|src|src/*|./src|./src/*|*/src|*/src/*|public|public/*|./public|./public/*|*/public|*/public/*|.env|.env.*|./.env|./.env.*|*/.env|*/.env.*|*.astro|./*.astro|*.md|./*.md|*.ts|./*.ts|*.mjs|./*.mjs|*.lock|./*.lock)
+              ""|../*|*/../*|.git|.git/*|./.git|./.git/*|*/.git|*/.git/*|node_modules|node_modules/*|./node_modules|./node_modules/*|*/node_modules|*/node_modules/*|src|src/*|./src|./src/*|*/src|*/src/*|public|public/*|./public|./public/*|*/public|*/public/*|.env|.env.*|./.env|./.env.*|*/.env|*/.env.*|*.astro|./*.astro|*.md|./*.md|*.ts|./*.ts|*.mjs|./*.mjs|*.lock|./*.lock)
                 echo "Refusing forbidden archive entry" >&2
                 exit 1
                 ;;
