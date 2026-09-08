@@ -15,11 +15,13 @@ The signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta.1`. Start
 
 `Hooks` has one registration method for each hook type:
 
-```php
-addAction(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-addFilter(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-addCollector(string $hookPoint, array|callable $callback, int $priority = 10): RegistrationHandle
-```
+| Method | What it registers | Return value |
+| --- | --- | --- |
+| `addAction(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback whose return value is ignored and whose purpose is a synchronous side effect. | A handle for this exact action registration. |
+| `addFilter(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback that receives the current value and returns the value passed to the next filter. | A handle for this exact filter registration. |
+| `addCollector(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback whose return value becomes one raw entry in the collector result list. | A handle for this exact collector registration. |
+
+All three accept a hook name, a PHP callable or callable array, and an optional priority. The default priority is `10`; lower numbers run first, and equal priorities keep registration order. The callback is invoked only when the matching dispatch method runs.
 
 Registrations belong to the `Hooks` instance that created them. The default priority is `10`. Lower numbers run first, and equal priorities retain registration order.
 
@@ -65,14 +67,16 @@ The returned `RegistrationHandle` identifies that exact registration, including 
 
 Each handle exposes:
 
-```php
-id(): int
-hookPoint(): string
-type(): string
-priority(): int
-remove(): bool
-belongsTo(Hooks $hooks): bool
-```
+| Method | Purpose and return value |
+| --- | --- |
+| `id(): int` | Returns the internal registration id. It identifies this registration among otherwise equivalent callbacks. |
+| `hookPoint(): string` | Returns the exact string hook name used during registration. |
+| `type(): string` | Returns the registration type, such as `action`, `filter`, or `collector`. |
+| `priority(): int` | Returns the priority assigned to the registration. |
+| `remove(): bool` | Removes this exact registration and returns `true`; returns `false` if it was already removed. |
+| `belongsTo(Hooks $hooks): bool` | Checks whether this handle was created by that exact `Hooks` object. |
+
+The handle is a reference to a registration, not a copy of the callback. Keep it when a temporary extension needs to remove exactly the listener it added.
 
 `remove()` is registration-id based. It removes the exact registration and returns `true`; calling it after that registration has already been removed returns `false`:
 
@@ -173,22 +177,24 @@ The arrays contain handles, not callback return values. They are snapshots of th
 
 Removal by callback is type-aware:
 
-```php
-removeAction(string $hookPoint, array|callable $callback, int $priority = 10): bool
-removeFilter(string $hookPoint, array|callable $callback, int $priority = 10): bool
-removeCollector(string $hookPoint, array|callable $callback, int $priority = 10): bool
-```
+| Method | What it removes | Return value |
+| --- | --- | --- |
+| `removeAction(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching action callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
+| `removeFilter(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching filter callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
+| `removeCollector(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching collector callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
 
 These methods remove the first matching callback of the requested type and priority. They do not accept a `RegistrationHandle`; call the handle's `remove()` method for exact registration-id removal. A callback registered as an action is not removed by `removeFilter()`.
 
 Bulk methods remove registrations and return the number removed:
 
-```php
-removeAll(?string $hookPoint = null): int
-removeAllActions(?string $hookPoint = null): int
-removeAllFilters(?string $hookPoint = null): int
-removeAllCollectors(?string $hookPoint = null): int
-```
+| Method | What it removes |
+| --- | --- |
+| `removeAll(?string $hookPoint = null): int` | All actions, filters, and collectors at one hook point, or every registration when the argument is omitted. |
+| `removeAllActions(?string $hookPoint = null): int` | Only action registrations at one hook point, or all action registrations when omitted. |
+| `removeAllFilters(?string $hookPoint = null): int` | Only filter registrations at one hook point, or all filter registrations when omitted. |
+| `removeAllCollectors(?string $hookPoint = null): int` | Only collector registrations at one hook point, or all collector registrations when omitted. |
+
+Each method returns the number of registrations it removed. A hook point limits the operation; omitting it is a registry-wide operation for the selected type.
 
 Passing a hook point limits removal to that point. Omitting it removes the relevant type across the registry; `removeAll()` removes all types.
 
@@ -296,30 +302,21 @@ These methods do not change action, filter, or collector behavior. The debug cal
 
 Processors, renderers, and class callbacks use these core contracts:
 
-```php
-interface Resolver
-{
-    public function resolve(string $className): object;
-}
+| Contract | Method | What it is used for |
+| --- | --- | --- |
+| `Resolver` | `resolve(string $className): object` | Creates the object for a resolver-backed class callback, processor, or renderer. |
+| `ResultProcessor` | `process(array $results, ProcessingContext $context): mixed` | Reduces collector results to an application-defined value. |
+| `Renderer` | `process(array $results, ProcessingContext $context): string` | Reduces collector results specifically to a string. `Renderer` extends `ResultProcessor`. |
 
-interface ResultProcessor
-{
-    public function process(array $results, ProcessingContext $context): mixed;
-}
-
-interface Renderer extends ResultProcessor
-{
-    public function process(array $results, ProcessingContext $context): string;
-}
-```
+The processor and renderer receive the raw list returned by `collect()` plus a `ProcessingContext`; they do not receive callbacks individually.
 
 `ProcessingContext` exposes:
 
-```php
-__construct(string $hookPoint, mixed ...$arguments)
-hookPoint(): string
-arguments(): array
-```
+| Method | Purpose and return value |
+| --- | --- |
+| `__construct(string $hookPoint, mixed ...$arguments)` | Stores the hook point and the arguments passed to `process()` or `render()`. |
+| `hookPoint(): string` | Returns the hook point currently being processed or rendered. |
+| `arguments(): array` | Returns the original invocation arguments as a list, in their original order. |
 
 The `ProcessingContext` constructor stores the original invocation arguments as a list. `RegistrationHandle` exposes the lifecycle methods above. `NativeResolver::resolve(string $className): object` creates a class with `new $className()`; the Laravel wrapper replaces this with container-backed resolution.
 
@@ -329,9 +326,11 @@ The `ProcessingContext` constructor stores the original invocation arguments as 
 
 The Laravel wrapper does not add a second dispatch API. Its access points resolve the same core object:
 
-- `hooks(): Magdicom\Hooks` returns the shared singleton and accepts no arguments;
-- `app(Magdicom\Hooks::class)` resolves the typed singleton;
-- `app('hooks')` resolves its alias;
-- `Magdicom\LaravelHooks\Facades\Hooks` forwards static calls to the same root.
+| Access path | Use it when | Behavior |
+| --- | --- | --- |
+| `hooks(): Magdicom\Hooks` | You need a short application-level call. | Returns the shared singleton and accepts no invocation arguments. Put arguments on `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`. |
+| `app(Magdicom\Hooks::class)` | A service or framework integration needs the typed container binding. | Resolves the same singleton as the helper. |
+| `app('hooks')` | Existing Laravel code uses the registered string alias. | Resolves the same singleton through the `hooks` alias. |
+| `Magdicom\LaravelHooks\Facades\Hooks` | You prefer Laravel facade syntax. | Forwards static-looking calls to the same container-managed root; it is not static state in the core package. |
 
 Use the [Laravel integration guide](/docs/2.x/laravel) for container lifecycle, auto-discovery, resolver timing, and long-running process guidance.
