@@ -192,11 +192,11 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 
 | Method | Purpose and return value | Applies to / relevant exceptions |
 | --- | --- | --- |
-| `setProcessor(string $hookPoint, ResultProcessor|callable|string $processor): self` | Stores or replaces the processor slot and returns the same Hooks object for deliberate method chaining. | Collectors; class-name processors must implement `ResultProcessor`, otherwise `InvalidProcessorException` is raised when invoked |
+| `setProcessor(string $hookPoint, ResultProcessor\|callable\|string $processor): self` | Stores or replaces the processor slot and returns the same Hooks object for deliberate method chaining. | Collectors; class-name processors must implement `ResultProcessor`, otherwise `InvalidProcessorException` is raised when invoked |
 | `hasProcessor(string $hookPoint): bool` | Reports whether the endpoint has a configured processing slot. | Collectors |
-| `processor(string $hookPoint): ResultProcessor|callable|string|null` | Returns the stored processor reference unchanged, or `null`. | Collectors |
+| `processor(string $hookPoint): ResultProcessor\|callable\|string\|null` | Returns the stored processor reference unchanged, or `null`. | Collectors |
 | `clearProcessor(string $hookPoint): bool` | Removes the processing slot and reports whether one existed. | Collectors |
-| `setRenderer(string $hookPoint, Renderer|callable|string $renderer): self` | Stores or replaces the same slot used by `setProcessor()` and returns the Hooks object. | Collectors; invalid renderer configuration is reported by `render()` |
+| `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer): self` | Stores or replaces the same slot used by `setProcessor()` and returns the Hooks object. | Collectors; invalid renderer configuration is reported by `render()` |
 | `process(string $hookPoint, mixed ...$arguments): mixed` | Collects raw results, creates `ProcessingContext`, invokes the configured processor, and returns its output unchanged. | Collectors; `MissingProcessorException` when unset, `InvalidProcessorException` for an invalid class reference |
 | `render(string $hookPoint, mixed ...$arguments): string` | Collects raw results, invokes the configured renderer, and requires string output. | Collectors; `MissingRendererException` when unset and `InvalidRendererException` for invalid class or non-string callable output |
 
@@ -207,17 +207,17 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 | Method | Purpose and return value | Applies to |
 | --- | --- | --- |
 | `has(string $hookPoint): bool` | Reports whether any hook type has a registration at the point. | All hook types |
-| `hasAction(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool` | Checks for any action, or a matching callback at the requested priority. | Actions |
-| `hasFilter(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool` | Checks for any filter, or a matching callback at the requested priority. | Filters |
-| `hasCollector(string $hookPoint, array|callable|null $callback = null, int $priority = 10): bool` | Checks for any collector, or a matching callback at the requested priority. | Collectors |
+| `hasAction(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Checks for any action, or a matching callback at the requested priority. | Actions |
+| `hasFilter(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Checks for any filter, or a matching callback at the requested priority. | Filters |
+| `hasCollector(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Checks for any collector, or a matching callback at the requested priority. | Collectors |
 | `count(?string $hookPoint = null): int` | Counts registrations across all types, optionally restricted to one point. | All hook types |
 | `listeners(string $hookPoint): array` | Returns all registration handles at the point, sorted by priority and registration id. | All hook types |
 | `actions(string $hookPoint): array` | Returns action handles in dispatch order. | Actions |
 | `filters(string $hookPoint): array` | Returns filter handles in dispatch order. | Filters |
 | `collectors(string $hookPoint): array` | Returns collector handles in dispatch order. | Collectors |
-| `removeAction(string $hookPoint, array|callable $callback, int $priority = 10): bool` | Removes the first matching action callback and priority. | Actions |
-| `removeFilter(string $hookPoint, array|callable $callback, int $priority = 10): bool` | Removes the first matching filter callback and priority. | Filters |
-| `removeCollector(string $hookPoint, array|callable $callback, int $priority = 10): bool` | Removes the first matching collector callback and priority. | Collectors |
+| `removeAction(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | Removes the first matching action callback and priority. | Actions |
+| `removeFilter(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | Removes the first matching filter callback and priority. | Filters |
+| `removeCollector(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | Removes the first matching collector callback and priority. | Collectors |
 | `removeAll(?string $hookPoint = null): int` | Removes all hook types at one point, or the entire registry when omitted; returns the number removed. | All hook types |
 | `removeAllActions(?string $hookPoint = null): int` | Removes action registrations and returns the number removed. | Actions |
 | `removeAllFilters(?string $hookPoint = null): int` | Removes filter registrations and returns the number removed. | Filters |

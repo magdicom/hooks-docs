@@ -154,3 +154,19 @@ After a future approved deployment, verify:
 - the rollback release remains available until acceptance is complete.
 
 This repository currently performs none of these production operations. It only builds and validates the static output in CI.
+
+## Operator handoff checklist
+
+Before implementing a deployment workflow or provisioning the production target, obtain and record all of the following:
+
+- [ ] Approved DNS target: the final `A` or `CNAME` destination for `hooks.momagdi.com`;
+- [ ] Exact dedicated cPanel document root: the verified absolute `DEPLOY_PATH`;
+- [ ] SSH hostname and port: the approved values for `DEPLOY_HOST` and `DEPLOY_PORT`;
+- [ ] Restricted deployment username: the approved `DEPLOY_USER` and its document-root permissions;
+- [ ] Deployment authentication method: key-based SSH or another approved mechanism, with no credential committed to Git;
+- [ ] Pinned SSH `known_hosts` value: the reviewed `DEPLOY_KNOWN_HOSTS` content for the final host;
+- [ ] Atomic deployment capability: confirmation whether the host supports atomic symlink switching or a safe staging/rename alternative;
+- [ ] Rollback retention policy: how many previous releases remain available and for how long;
+- [ ] GitHub production environment approval settings: required reviewers, branch restrictions, secret scope, and manual approval policy.
+
+Do not add a production deployment workflow until the exact server path and supported atomic-deployment method are known. Do not guess any of these values.
