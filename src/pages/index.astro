@@ -1,6 +1,30 @@
 ---
 const title = 'Hooks'
 const description = 'Composable actions, filters, and result collection for modern PHP applications.'
+const phpExample = `<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/vendor/autoload.php';
+
+use Magdicom\\Hooks;
+
+$hooks = new Hooks();
+
+$hooks->addAction('order.created', static function (int $orderId): void {
+    // Notify an integration, write an audit entry, or trigger another side effect.
+});
+
+$hooks->doAction('order.created', 42);`
+const laravelExample = `<?php
+
+declare(strict_types=1);
+
+hooks()->addFilter('profile.display_name', static function (string $name): string {
+    return strtoupper($name);
+});
+
+$displayName = hooks()->applyFilters('profile.display_name', 'Ada Lovelace');`
 ---
 
 <!doctype html>
@@ -18,105 +42,160 @@ const description = 'Composable actions, filters, and result collection for mode
     <link rel="icon" href="/hooks-mark.svg" />
   </head>
   <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Hooks home">
+        <img src="/hooks-mark.svg" alt="" width="32" height="32" />
+        <span>Hooks</span>
+      </a>
+      <nav aria-label="Primary navigation">
+        <a href="/docs/2.x/">Documentation</a>
+        <a href="https://github.com/magdicom/hooks">GitHub</a>
+        <a href="/docs/2.x/upgrade">Upgrade</a>
+      </nav>
+    </header>
+
     <main>
-      <p>Hooks 2.x Beta</p>
-      <h1>{title}</h1>
-      <p>{description}</p>
-      <a href="/docs/2.x/">Read the documentation</a>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Hooks 2.x Beta · PHP 8.2+</p>
+          <h1 id="hero-title">Explicit extension points for PHP applications.</h1>
+          <p class="lede">{description} Keep integrations synchronous and deterministic with named points that make side effects, transformations, and collected results easy to reason about.</p>
+          <div class="button-row" aria-label="Get started">
+            <a class="button button-primary" href="/docs/2.x/installation">Install Hooks</a>
+            <a class="button button-secondary" href="/docs/2.x/">Read the documentation</a>
+          </div>
+        </div>
+        <aside class="beta-card" aria-label="Beta status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <strong>2.x Beta</strong>
+          <p>The current documentation covers the released beta APIs. Check the package tags and upgrade guide before adopting it in production.</p>
+          <a href="https://github.com/magdicom/hooks/releases">View current releases →</a>
+        </aside>
+      </section>
+
+      <section class="section" aria-labelledby="concepts-title">
+        <div class="section-heading">
+          <p class="eyebrow">One model, three deliberate behaviors</p>
+          <h2 id="concepts-title">Choose the result you want.</h2>
+        </div>
+        <div class="concept-grid">
+          <article class="concept-card"><span class="concept-number">01</span><h3><a href="/docs/2.x/actions">Actions</a></h3><p>Run ordered side effects with variadic invocation arguments. Callback return values are ignored and execution is void.</p></article>
+          <article class="concept-card"><span class="concept-number">02</span><h3><a href="/docs/2.x/filters">Filters</a></h3><p>Pass a value through sequential transformations. Each listener receives the current value first and returns the next value.</p></article>
+          <article class="concept-card"><span class="concept-number">03</span><h3><a href="/docs/2.x/collectors">Collectors</a></h3><p>Gather one raw result per listener, preserving deterministic order without automatically merging or flattening entries.</p></article>
+        </div>
+      </section>
+
+      <section class="section example-section" aria-labelledby="core-example-title">
+        <div class="example-copy"><p class="eyebrow">Framework-independent core</p><h2 id="core-example-title">Start with a named action.</h2><p>The core package has no framework runtime dependency. Register callbacks with an explicit priority, then invoke the named hook with the arguments your application defines.</p><a class="text-link" href="/docs/2.x/actions">Explore actions →</a></div>
+        <div class="code-card"><div class="code-label">PHP · core</div><pre><code>{phpExample}</code></pre></div>
+      </section>
+
+      <section class="section example-section example-section-reverse" aria-labelledby="laravel-example-title">
+        <div class="example-copy"><p class="eyebrow">Optional Laravel integration</p><h2 id="laravel-example-title">Use the same hook model in Laravel.</h2><p>The Laravel wrapper adds auto-discovery, a facade, dependency injection, and the <code>hooks()</code> helper while keeping the core API explicit.</p><a class="text-link" href="/docs/2.x/laravel">Explore Laravel integration →</a></div>
+        <div class="code-card"><div class="code-label">PHP · Laravel</div><pre><code>{laravelExample}</code></pre></div>
+      </section>
+
+      <section class="section install-section" aria-labelledby="install-title">
+        <div class="section-heading"><p class="eyebrow">Install the beta</p><h2 id="install-title">Pick your integration boundary.</h2></div>
+        <div class="install-grid">
+          <article class="install-card"><h3>Core PHP</h3><p>For framework-independent applications and reusable packages.</p><code>composer require magdicom/hooks:"^2.0@beta"</code><a class="button button-primary" href="https://packagist.org/packages/magdicom/hooks">View on Packagist</a></article>
+          <article class="install-card"><h3>Laravel</h3><p>For Laravel 12 or 13 applications using the optional wrapper.</p><code>composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"</code><a class="button button-primary" href="https://packagist.org/packages/magdicom/laravel-hooks">View on Packagist</a></article>
+        </div>
+        <p class="fine-print">Both prerelease packages are explicitly permitted by these commands. Do not change your global Composer minimum-stability setting.</p>
+      </section>
+
+      <section class="section comparison-section" aria-labelledby="comparison-title">
+        <div class="section-heading"><p class="eyebrow">Use the right abstraction</p><h2 id="comparison-title">Hooks are not a replacement for every workflow.</h2></div>
+        <div class="comparison-table" role="table" aria-label="Choosing between Laravel Events, Laravel Pipeline, and Hooks">
+          <div class="comparison-row comparison-head" role="row"><strong role="columnheader">Choose</strong><strong role="columnheader">When you need</strong></div>
+          <div class="comparison-row" role="row"><strong role="rowheader">Laravel Events</strong><span role="cell">Domain events, queues, broadcasting, and framework workflows.</span></div>
+          <div class="comparison-row" role="row"><strong role="rowheader">Laravel Pipeline</strong><span role="cell">A known middleware-like transformation chain with a defined pass-through.</span></div>
+          <div class="comparison-row comparison-highlight" role="row"><strong role="rowheader">Hooks</strong><span role="cell">Named synchronous extension points, ordered filters, and independent result collection.</span></div>
+        </div>
+      </section>
+
+      <section class="closing-panel" aria-labelledby="next-title"><p class="eyebrow">Continue exploring</p><h2 id="next-title">Make extension points visible.</h2><div class="link-grid"><a href="/docs/2.x/concepts">Concepts <span>→</span></a><a href="/docs/2.x/processors">Processors and renderers <span>→</span></a><a href="/docs/2.x/api">API reference <span>→</span></a><a href="/docs/2.x/upgrade">Upgrade from 1.x <span>→</span></a><a href="https://github.com/magdicom/hooks">Core on GitHub <span>↗</span></a><a href="https://github.com/magdicom/laravel-hooks">Laravel wrapper on GitHub <span>↗</span></a></div></section>
     </main>
+
+    <footer class="site-footer"><span>Hooks · composable extension points for PHP</span><a href="https://github.com/magdicom/hooks/releases">Releases</a></footer>
   </body>
-  <style>
-    :global(*) {
-      box-sizing: border-box;
-    }
-
-    :global(body) {
-      margin: 0;
-      color: #172033;
-      background: #f7faf9;
-      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    :global(a) {
-      color: #075343;
-    }
-
-    main {
-      display: grid;
-      align-content: center;
-      min-height: 100vh;
-      max-width: 52rem;
-      margin: 0 auto;
-      padding: 3rem 1.5rem;
-    }
-
-    p:first-child {
-      margin: 0;
-      color: #147d68;
-      font-size: 0.8rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 0.75rem 0 0;
-      color: #172033;
-      font-size: clamp(3rem, 12vw, 7rem);
-      line-height: 0.95;
-      letter-spacing: -0.07em;
-    }
-
-    p:not(:first-child) {
-      max-width: 38rem;
-      color: #526079;
-      font-size: clamp(1.1rem, 2vw, 1.35rem);
-      line-height: 1.6;
-    }
-
-    a {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: fit-content;
-      margin-top: 1rem;
-      padding: 0.8rem 1.1rem;
-      border-radius: 0.45rem;
-      color: #ffffff;
-      background: #147d68;
-      font-weight: 700;
-      text-decoration: none;
-    }
-
-    a:hover {
-      background: #075343;
-    }
-
-    a:focus-visible {
-      outline: 3px solid #f2c879;
-      outline-offset: 3px;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :global(body) {
-        color: #f5f7fb;
-        background: #101715;
-      }
-
-      h1 {
-        color: #f5f7fb;
-      }
-
-      p:not(:first-child) {
-        color: #a8b2c5;
-      }
-    }
-
-    @media (max-width: 40rem) {
-      main {
-        min-height: 90vh;
-        padding: 2rem 1.25rem;
-      }
-    }
-  </style>
 </html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(body) { margin: 0; color: #172033; background: #f7faf9; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  :global(a) { color: inherit; }
+  :global(code), :global(pre) { font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace; }
+  .site-header, main, .site-footer { max-width: 76rem; margin: 0 auto; }
+  .site-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; }
+  .brand { display: inline-flex; gap: 0.6rem; align-items: center; color: #172033; font-size: 1.1rem; font-weight: 800; text-decoration: none; }
+  .site-header nav { display: flex; gap: 1.25rem; color: #526079; font-size: 0.9rem; font-weight: 650; }
+  .site-header nav a, .text-link { text-underline-offset: 0.2em; text-decoration-thickness: 0.08em; }
+  .site-header nav a { text-decoration: none; }
+  .site-header nav a:hover, .text-link:hover { color: #147d68; }
+  main { padding: 0 1.5rem 5rem; }
+  .hero { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(16rem, 0.7fr); gap: 4rem; align-items: end; padding: 6rem 0 7rem; }
+  .hero-copy { max-width: 48rem; }
+  .eyebrow { margin: 0 0 1rem; color: #147d68; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.13em; line-height: 1.4; text-transform: uppercase; }
+  h1, h2, h3, p { margin-top: 0; }
+  h1 { max-width: 11ch; margin-bottom: 1.5rem; color: #172033; font-size: clamp(3.4rem, 8vw, 7.2rem); line-height: 0.94; letter-spacing: -0.075em; }
+  h2 { margin-bottom: 1rem; color: #172033; font-size: clamp(2rem, 4vw, 3.4rem); line-height: 1.05; letter-spacing: -0.055em; }
+  h3 { margin-bottom: 0.75rem; color: #172033; font-size: 1.25rem; }
+  .lede { max-width: 43rem; margin-bottom: 2rem; color: #526079; font-size: clamp(1.1rem, 2vw, 1.35rem); line-height: 1.6; }
+  .button-row { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+  .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.8rem; padding: 0.7rem 1rem; border: 1px solid transparent; border-radius: 0.4rem; font-size: 0.9rem; font-weight: 750; text-decoration: none; }
+  .button-primary { color: #fff; background: #147d68; }
+  .button-primary:hover { background: #075343; }
+  .button-secondary { border-color: #b8c8c4; color: #075343; background: transparent; }
+  .button-secondary:hover { border-color: #147d68; background: #e5f5ef; }
+  .beta-card { padding: 1.4rem; border: 1px solid #b8c8c4; border-radius: 0.7rem; background: #fff; box-shadow: 0 1.25rem 2.5rem rgb(23 32 51 / 7%); }
+  .status-dot { display: inline-block; width: 0.6rem; height: 0.6rem; margin-right: 0.45rem; border-radius: 50%; background: #147d68; box-shadow: 0 0 0 0.25rem #dff8ef; }
+  .beta-card p { margin: 0.75rem 0 1rem; color: #526079; line-height: 1.55; }
+  .beta-card a, .text-link { color: #075343; font-weight: 750; }
+  .section { padding: 5rem 0; border-top: 1px solid #dbe5e2; }
+  .section-heading { max-width: 40rem; margin-bottom: 2rem; }
+  .concept-grid, .install-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+  .concept-card, .install-card { padding: 1.5rem; border: 1px solid #c9d3d0; border-radius: 0.6rem; background: #fff; }
+  .concept-number { color: #147d68; font-family: monospace; font-size: 0.8rem; font-weight: 700; }
+  .concept-card h3 { margin-top: 2rem; }
+  .concept-card h3 a { text-underline-offset: 0.15em; }
+  .concept-card p, .install-card p, .example-copy p { color: #526079; line-height: 1.6; }
+  .example-section { display: grid; grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr); gap: 4rem; align-items: center; }
+  .example-section-reverse { grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr); }
+  .example-section-reverse .example-copy { order: 2; }
+  .code-card { overflow: hidden; border: 1px solid #344a46; border-radius: 0.6rem; color: #e7f5ef; background: #172a27; box-shadow: 0 1.5rem 3rem rgb(23 42 39 / 15%); }
+  .code-label { padding: 0.7rem 1rem; border-bottom: 1px solid #344a46; color: #8ee6c8; font-size: 0.75rem; font-weight: 750; letter-spacing: 0.08em; text-transform: uppercase; }
+  pre { overflow-x: auto; margin: 0; padding: 1.25rem; font-size: 0.82rem; line-height: 1.7; }
+  .install-grid { grid-template-columns: repeat(2, 1fr); }
+  .install-card code { display: block; overflow-x: auto; margin: 1.25rem 0; padding: 0.8rem; border-radius: 0.35rem; color: #075343; background: #e5f5ef; font-size: 0.78rem; white-space: nowrap; }
+  .fine-print { margin: 1rem 0 0; color: #526079; font-size: 0.88rem; }
+  .comparison-table { overflow: hidden; border: 1px solid #c9d3d0; border-radius: 0.6rem; background: #fff; }
+  .comparison-row { display: grid; grid-template-columns: minmax(10rem, 0.65fr) 1.35fr; gap: 1rem; padding: 1rem 1.25rem; border-top: 1px solid #dbe5e2; line-height: 1.5; }
+  .comparison-row:first-child { border-top: 0; }
+  .comparison-head { color: #526079; background: #f0f6f4; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  .comparison-highlight { border-left: 0.25rem solid #147d68; padding-left: 1rem; background: #e5f5ef; }
+  .closing-panel { margin-top: 5rem; padding: 3rem; border-radius: 0.8rem; color: #f5f7fb; background: #172a27; }
+  .closing-panel h2 { color: #f5f7fb; }
+  .link-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; }
+  .link-grid a { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid #426158; color: #dff8ef; text-decoration: none; }
+  .link-grid a:hover { color: #8ee6c8; }
+  .site-footer { display: flex; justify-content: space-between; padding: 1.5rem; border-top: 1px solid #dbe5e2; color: #526079; font-size: 0.85rem; }
+  .site-footer a { color: #075343; }
+  :global(a:focus-visible) { outline: 3px solid #f2c879; outline-offset: 3px; border-radius: 0.2rem; }
+  @media (prefers-color-scheme: dark) {
+    :global(body) { color: #f5f7fb; background: #101715; }
+    .brand, h1, h2, h3 { color: #f5f7fb; }
+    .site-header nav, .lede, .beta-card p, .concept-card p, .install-card p, .example-copy p, .fine-print, .site-footer { color: #a8b2c5; }
+    .site-header nav a:hover, .text-link, .site-footer a { color: #8ee6c8; }
+    .button-secondary { border-color: #526d64; color: #dff8ef; }
+    .button-secondary:hover { border-color: #8ee6c8; background: #123c35; }
+    .beta-card, .concept-card, .install-card, .comparison-table { border-color: #3d4c49; background: #16231f; }
+    .section, .site-footer { border-color: #273732; }
+    .comparison-head { background: #1c302a; }
+    .comparison-row { border-color: #3d4c49; }
+    .comparison-highlight { background: #123c35; }
+    .install-card code { color: #dff8ef; background: #123c35; }
+  }
+  @media (max-width: 55rem) { .hero, .example-section, .example-section-reverse { grid-template-columns: 1fr; gap: 2rem; } .example-section-reverse .example-copy { order: initial; } .concept-grid { grid-template-columns: 1fr; } .link-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 40rem) { .site-header { align-items: flex-start; } .site-header nav { flex-direction: column; gap: 0.4rem; align-items: flex-end; } main { padding: 0 1.25rem 3rem; } .hero { padding: 4rem 0 5rem; } h1 { font-size: clamp(3rem, 16vw, 5rem); } .section { padding: 3.5rem 0; } .install-grid, .link-grid { grid-template-columns: 1fr; } .comparison-row { grid-template-columns: 1fr; gap: 0.25rem; } .closing-panel { padding: 2rem 1.25rem; } .site-footer { flex-direction: column; gap: 0.5rem; } }
+</style>
