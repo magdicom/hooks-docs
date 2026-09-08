@@ -39,6 +39,12 @@ const plannedRoutes = [
 ]
 const distPathFor = (route) => join(distRoot, route === '/' ? 'index.html' : route === '/docs' ? 'docs/index.html' : `${route.replace(/\/$/, '')}/index.html`)
 for (const route of plannedRoutes) if (!existsSync(distPathFor(route))) fail(`dist: missing planned route ${route}`)
+if (!existsSync(join(distRoot, 'robots.txt'))) fail('dist: robots.txt is missing')
+if (!existsSync(join(distRoot, 'sitemap-index.xml'))) fail('dist: sitemap-index.xml is missing')
+const representativeHtml = readFileSync(join(distRoot, 'docs', '2.x', 'index.html'), 'utf8')
+if (!representativeHtml.includes('https://hooks.momagdi.com/docs/2.x/')) fail('docs/2.x: canonical URL is missing or incorrect')
+if (!representativeHtml.includes('property="og:title"')) fail('docs/2.x: Open Graph metadata is missing')
+if (!representativeHtml.includes('https://github.com/magdicom/hooks-docs/edit/main/src/content/docs/2.x/index.md')) fail('docs/2.x: edit link is missing or incorrect')
 
 const routeForMarkdown = (file) => {
   const path = relative(docsRoot, file).replace(/\.md$/, '')

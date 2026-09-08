@@ -25,6 +25,8 @@ npm run preview:smoke
 
 `npm run validate` checks Markdown frontmatter and fences, planned routes and sidebar links, internal documentation links, representative PHP examples, Composer commands, package names, and committed-secret patterns. `npm run preview:smoke` builds on the existing `dist/` output and checks every planned route through `astro preview`.
 
+The generated site uses `https://hooks.momagdi.com` for canonical and sitemap URLs. `public/robots.txt` currently disallows crawling because the production domain has not been deployed; update that policy as part of the approved deployment stage.
+
 Markdown documentation lives under `src/content/docs/` and is rendered by Starlight. The static site is generated in `dist/` and can later be copied to an Apache document root. This repository does not contain Laravel, PHP runtime, database, CMS, authentication, or deployment dependencies.
 
 The site is maintained separately from the [`magdicom/hooks`](https://github.com/magdicom/hooks) and [`magdicom/laravel-hooks`](https://github.com/magdicom/laravel-hooks) package repositories.

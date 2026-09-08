@@ -18,7 +18,7 @@ export default defineConfig({
         { icon: 'github', label: 'Hooks on GitHub', href: 'https://github.com/magdicom/hooks' },
       ],
       editLink: {
-        baseUrl: 'https://github.com/magdicom/hooks-docs/edit/main/src/content/docs/',
+        baseUrl: 'https://github.com/magdicom/hooks-docs/edit/main/',
       },
       sidebar: [
         {
