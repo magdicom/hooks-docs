@@ -1,0 +1,242 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hooks-docs-production
+  cancel-in-progress: false
+
+env:
+  DEPLOY_URL: https://hooks.momagdi.com
+  KEEP_RELEASES: "0"
+
+jobs:
+  deploy:
+    name: Validate and deploy static site
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type-check Astro project
+        run: npm run astro -- check
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Validate documentation
+        run: npm run validate
+
+      - name: Smoke test static preview
+        run: npm run preview:smoke
+
+      - name: Verify deployable output
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -s dist/index.html
+          test -s dist/docs/2.x/index.html
+          test -s dist/sitemap-index.xml
+          test -s dist/robots.txt
+
+          archive="$(mktemp --tmpdir hooks-docs-dist.XXXXXX.tar.gz)"
+          trap 'rm -f "$archive"' EXIT
+          tar -C dist -czf "$archive" .
+
+          while IFS= read -r entry; do
+            case "$entry" in
+              ""|./|./.|../*|*/../*|.git|.git/*|./.git|./.git/*|*/.git|*/.git/*|node_modules|node_modules/*|./node_modules|./node_modules/*|*/node_modules|*/node_modules/*|src|src/*|./src|./src/*|*/src|*/src/*|public|public/*|./public|./public/*|*/public|*/public/*|.env|.env.*|./.env|./.env.*|*/.env|*/.env.*|*.astro|./*.astro|*.md|./*.md|*.ts|./*.ts|*.mjs|./*.mjs|*.lock|./*.lock)
+                echo "Refusing forbidden archive entry" >&2
+                exit 1
+                ;;
+            esac
+          done < <(tar -tzf "$archive")
+
+          echo "Deployable output verified; archive contains only generated site files."
+
+      - name: Deploy validated release
+        id: deploy
+        shell: bash
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_PORT: ${{ secrets.DEPLOY_PORT }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+
+          for required_secret in DEPLOY_HOST DEPLOY_PORT DEPLOY_USER DEPLOY_PATH DEPLOY_SSH_KEY DEPLOY_KNOWN_HOSTS; do
+            if [ -z "${!required_secret:-}" ]; then
+              echo "Required production secret is empty: ${required_secret}" >&2
+              exit 1
+            fi
+          done
+
+          if [ "$DEPLOY_USER" != "hooksmomagdi" ]; then
+            echo "Refusing deployment: DEPLOY_USER is not the dedicated cPanel user." >&2
+            exit 1
+          fi
+
+          if ! [[ "$DEPLOY_PORT" =~ ^[0-9]+$ ]] || [ "$DEPLOY_PORT" -lt 1 ] || [ "$DEPLOY_PORT" -gt 65535 ]; then
+            echo "Refusing deployment: DEPLOY_PORT must be a valid numeric port." >&2
+            exit 1
+          fi
+
+          if [ "$DEPLOY_PATH" != "/home/hooksmomagdi/public_html" ]; then
+            echo "Refusing deployment: DEPLOY_PATH is not the dedicated document root." >&2
+            exit 1
+          fi
+
+          case "$DEPLOY_PATH" in
+            /*/public_html) ;;
+            *) echo "Refusing deployment: DEPLOY_PATH must be an absolute /public_html path." >&2; exit 1 ;;
+          esac
+
+          case "$DEPLOY_PATH" in
+            /|/home|/home/hooksmomagdi|*/hooks|*/laravel-hooks|*/hooks-docs)
+              echo "Refusing unsafe deployment path." >&2
+              exit 1
+              ;;
+          esac
+
+          umask 077
+          ssh_key_file="$(mktemp)"
+          known_hosts_file="$(mktemp)"
+          archive_file="$(mktemp --tmpdir hooks-docs-dist.XXXXXX.tar.gz)"
+          sha_file="$(mktemp --tmpdir hooks-docs-sha.XXXXXX)"
+          cleanup() {
+            status=$?
+            rm -f "$ssh_key_file" "$known_hosts_file" "$archive_file" "$sha_file"
+            exit "$status"
+          }
+          trap cleanup EXIT HUP INT TERM
+
+          printf '%s\n' "$DEPLOY_SSH_KEY" > "$ssh_key_file"
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > "$known_hosts_file"
+          chmod 600 "$ssh_key_file" "$known_hosts_file"
+
+          tar -C dist -czf "$archive_file" .
+          printf '%s\n' "$GITHUB_SHA" > "$sha_file"
+
+          ssh_options=(-i "$ssh_key_file" -o UserKnownHostsFile="$known_hosts_file" -o StrictHostKeyChecking=yes -o BatchMode=yes -o IdentitiesOnly=yes -p "$DEPLOY_PORT")
+          remote_incoming='/home/hooksmomagdi/.hooks-deploy/incoming'
+          remote_archive="$remote_incoming/hooks-docs.tar.gz"
+          remote_sha="$remote_incoming/hooks-docs.sha"
+
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'set -eu; test -d /home/hooksmomagdi/public_html; test "$(realpath -e -- /home/hooksmomagdi/public_html)" = /home/hooksmomagdi/public_html; case /home/hooksmomagdi/public_html in /|/home|/home/hooksmomagdi|*/hooks|*/laravel-hooks|*/hooks-docs) exit 1;; esac'
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'umask 077; mkdir -p /home/hooksmomagdi/.hooks-deploy/incoming /home/hooksmomagdi/.hooks-deploy/releases /home/hooksmomagdi/.hooks-deploy/backups /home/hooksmomagdi/.hooks-deploy/records'
+          scp "${ssh_options[@]}" "$archive_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_archive"
+          scp "${ssh_options[@]}" "$sha_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_sha"
+
+          ssh "${ssh_options[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' <<'REMOTE_SCRIPT'
+          set -euo pipefail
+
+          account_root='/home/hooksmomagdi'
+          deploy_path='/home/hooksmomagdi/public_html'
+          incoming="$account_root/.hooks-deploy/incoming"
+          releases="$account_root/.hooks-deploy/releases"
+          backups="$account_root/.hooks-deploy/backups"
+          records="$account_root/.hooks-deploy/records"
+          archive="$incoming/hooks-docs.tar.gz"
+          sha_file="$incoming/hooks-docs.sha"
+          deploy_sha="$(tr -d '\r\n' < "$sha_file")"
+
+          if ! printf '%s' "$deploy_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo 'Refusing deployment: invalid commit SHA.' >&2
+            exit 1
+          fi
+
+          if [ "$deploy_path" != "$account_root/public_html" ] || [ "$deploy_path" = / ] || [ "$deploy_path" = /home ] || [ "$deploy_path" = "$account_root" ]; then
+            echo 'Refusing deployment: invalid dedicated document root.' >&2
+            exit 1
+          fi
+
+          release_dir="$releases/$deploy_sha"
+          backup_dir="$backups/$deploy_sha"
+          mkdir -p "$release_dir"
+          tar -xzf "$archive" -C "$release_dir"
+
+          test -s "$release_dir/index.html"
+          test -s "$release_dir/docs/2.x/index.html"
+          test -s "$release_dir/sitemap-index.xml"
+          test -s "$release_dir/robots.txt"
+
+          if [ -d "$deploy_path" ] && find "$deploy_path" -mindepth 1 -maxdepth 1 -print -quit | grep -q .; then
+            mkdir -p "$backup_dir"
+            tar -C "$deploy_path" -czf "$backup_dir/public_html.tar.gz" .
+          fi
+
+          rsync -a --delete "$release_dir"/ "$deploy_path"/
+          timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+          {
+            printf 'commit=%s\n' "$deploy_sha"
+            printf 'deployed_at_utc=%s\n' "$timestamp"
+            printf 'release=%s\n' "$release_dir"
+            printf 'rollback_backup=%s\n' "$backup_dir"
+          } > "$records/$deploy_sha.txt"
+
+          printf 'DEPLOY_SHA=%s\n' "$deploy_sha"
+          printf 'DEPLOYED_AT_UTC=%s\n' "$timestamp"
+          printf 'RELEASE_ID=%s\n' "$deploy_sha"
+          printf 'ROLLBACK_ID=%s\n' "$deploy_sha"
+          REMOTE_SCRIPT
+
+      - name: Smoke test deployed HTTPS site
+        shell: bash
+        env:
+          DEPLOY_URL: ${{ env.DEPLOY_URL }}
+        run: |
+          set -euo pipefail
+
+          check_status() {
+            expected="$1"
+            route="$2"
+            actual="$(curl --silent --show-error --location --max-time 30 --output /dev/null --write-out '%{http_code}' "$DEPLOY_URL$route")"
+            if [ "$actual" != "$expected" ]; then
+              echo "Unexpected HTTPS status for route $route" >&2
+              exit 1
+            fi
+          }
+
+          check_status 200 /
+          check_status 200 /docs/2.x/
+          check_status 200 /docs/2.x/installation/
+          check_status 200 /docs/2.x/api/
+          check_status 404 /this-route-does-not-exist
+          echo "HTTPS smoke checks passed for the production URL."
+
+      - name: Write deployment summary
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo "## Production deployment"
+            echo
+            echo "- Deployed commit: \\`${GITHUB_SHA:0:7}\\`"
+            echo "- Deployment URL: ${DEPLOY_URL}"
+            echo "- Validation: completed before packaging"
+            if [ "${{ steps.deploy.outcome }}" = success ]; then
+              echo "- Deployment: synchronized and HTTPS smoke-tested"
+            else
+              echo "- Deployment: failed before successful completion"
+            fi
+            echo "- Rollback release identifier: \\`${GITHUB_SHA}\\` (retained under the protected deployment area)"
+            echo "- Old releases are retained; automatic cleanup is disabled"
+          } >> "$GITHUB_STEP_SUMMARY"

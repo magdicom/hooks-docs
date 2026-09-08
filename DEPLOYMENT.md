@@ -1,8 +1,8 @@
-# Future deployment preparation
+# Production deployment
 
-This guide describes a later deployment of the static Astro + Starlight site to `hooks.momagdi.com` on Apache/cPanel. It is preparation only.
+This guide describes the manually triggered first deployment of the static Astro + Starlight site to `hooks.momagdi.com` on Apache/cPanel.
 
-Stage one has **not** configured DNS, cPanel, SSL, an SSH user, an SSH key, GitHub deployment secrets, or a production deployment job. Do not run the operational steps below until the final server details and approvals are available.
+The protected GitHub `production` environment and jailed SSH account are provisioned. The deployment workflow is intentionally manual and does not run on pushes. It uses cPanel user `hooksmomagdi` and fails closed unless `DEPLOY_PATH` is exactly `/home/hooksmomagdi/public_html`. No DNS, cPanel, SSL, or server changes are performed by GitHub Actions.
 
 ## 1. Create the cPanel subdomain
 
@@ -44,7 +44,7 @@ Create a dedicated deployment user or an account-scoped SSH key with only the pe
 
 Never commit a private key. Store it only in the GitHub Actions secret configured for the deployment stage.
 
-## 5. Configure the future GitHub secrets
+## 5. Configure the GitHub production secrets
 
 The future deployment workflow may use these repository or environment secrets:
 
@@ -57,7 +57,7 @@ The future deployment workflow may use these repository or environment secrets:
 | `DEPLOY_SSH_KEY` | Private key for the restricted deployment identity |
 | `DEPLOY_KNOWN_HOSTS` | Pinned SSH host-key data |
 
-These secrets are not configured in stage one. Do not add them to CI until the final SSH user, deployment directory, host key, and approval process are confirmed.
+These values must exist only as protected secrets in the `production` environment. The workflow rejects empty values, password authentication, any user other than `hooksmomagdi`, and any path other than the dedicated document root.
 
 ## 6. Build the site
 
@@ -92,7 +92,7 @@ Before copying, confirm that the build output is non-empty and contains expected
 
 ## 8. Prevent an empty or root deployment path
 
-The future workflow must fail closed before any file operation. At minimum, validate that:
+The workflow fails closed before any remote modification. It validates that:
 
 - the build directory is exactly the workspace's `dist/` directory;
 - `dist/index.html` exists and is non-empty;
@@ -103,7 +103,7 @@ The future workflow must fail closed before any file operation. At minimum, vali
 - the resolved destination is the expected cPanel document root;
 - the destination parent exists and is owned by the restricted deployment user.
 
-Illustrative guard logic, requiring adaptation to the hosting environment:
+The implemented guard additionally requires the provisioned cPanel identity and exact document root:
 
 ```bash
 set -eu
@@ -112,11 +112,14 @@ test -s dist/index.html
 test -s dist/docs/2.x/index.html
 
 case "${DEPLOY_PATH:-}" in
-  ""|/|/home|/home/*/public_html|*/hooks|*/laravel-hooks)
+  ""|/|/home|*/hooks|*/laravel-hooks|*/hooks-docs)
     echo "Refusing unsafe or empty deployment path" >&2
     exit 1
     ;;
 esac
+
+test "${DEPLOY_USER:-}" = hooksmomagdi
+test "${DEPLOY_PATH:-}" = /home/hooksmomagdi/public_html
 
 case "${DEPLOY_PATH:-}" in
   /*) ;;
@@ -126,18 +129,21 @@ esac
 
 The real workflow should use an explicit allow-list or a separately verified path rather than trusting an arbitrary secret value.
 
-## 9. Atomic deployment and rollback
+## 9. Implemented release and backup deployment
 
-Prefer a release-based deployment over deleting the live document root and copying into it:
+`.github/workflows/deploy.yml` implements a release-based deployment without deleting the live document root:
 
-1. Build and validate `dist/` in CI.
-2. Copy `dist/` to a new temporary release directory outside the active document root.
-3. Verify the release contents and permissions.
-4. Switch the document root or a release symlink atomically, if the hosting environment supports it.
-5. Retain the previous release until the new site passes an HTTPS smoke test.
-6. Roll back by switching back to the previous verified release.
+1. Build and validate `dist/` with the complete CI-equivalent sequence.
+2. Archive only the contents of `dist/` and upload it to the non-public `/home/hooksmomagdi/.hooks-deploy/incoming` directory.
+3. Extract the archive into `/home/hooksmomagdi/.hooks-deploy/releases/<commit-sha>` and verify its required files.
+4. Back up existing `public_html` content to `/home/hooksmomagdi/.hooks-deploy/backups/<commit-sha>` when a previous deployment exists.
+5. Synchronize the validated release with `rsync --delete` only after all pre-sync checks pass.
+6. Record the commit and UTC timestamp under the non-public records directory.
+7. Run HTTPS smoke checks before the job succeeds.
 
-If cPanel restrictions prevent symlink switching, copy into a uniquely named staging directory, validate it, and use the hosting platform's safest rename or synchronization operation. Avoid a broad `rm` or a partially copied live tree.
+The first workflow does not use symlink switching because the exact cPanel atomic-switch capability has not been established. It does not remove old releases or backups. If a failure occurs before synchronization, the live site is not changed.
+
+No `rm -rf` operation is used. The live tree is backed up before synchronization, and release/backup data is retained for manual rollback.
 
 Record the commit SHA, build timestamp, release directory, and rollback target for each approved deployment. Keep only the required number of old releases according to the hosting policy, and remove old releases only after confirming the active target.
 
@@ -153,7 +159,21 @@ After a future approved deployment, verify:
 - the document root contains only static build output;
 - the rollback release remains available until acceptance is complete.
 
-This repository currently performs none of these production operations. It only builds and validates the static output in CI.
+The workflow performs the build, validation, upload, release extraction, backup, synchronization, and HTTPS smoke checks. It does not configure DNS, cPanel, SSL, or deployment secrets.
+
+## 11. Manual rollback procedure
+
+Rollback is intentionally operator-driven. Do not run it until the failed deployment and target release have been identified.
+
+1. Open the `production` environment and identify the deployment commit from the workflow summary or the non-public record at `/home/hooksmomagdi/.hooks-deploy/records/<commit-sha>.txt`.
+2. Connect through the approved jailed SSH account using the same pinned host key. Do not use a password or an unreviewed host key.
+3. Inspect the corresponding backup archive under `/home/hooksmomagdi/.hooks-deploy/backups/<commit-sha>/public_html.tar.gz` and confirm it belongs to the previous accepted site.
+4. Preserve the current `public_html` tree as an additional operator-named backup. Do not use `rm -rf`.
+5. Extract the accepted backup into a temporary directory under `/home/hooksmomagdi/.hooks-deploy/`, verify `index.html` and `docs/2.x/index.html`, then synchronize it into `/home/hooksmomagdi/public_html` with `rsync -a --delete`.
+6. Run the HTTPS smoke checks for `/`, `/docs/2.x/`, `/docs/2.x/installation/`, `/docs/2.x/api/`, and a nonexistent route.
+7. Record the rollback commit and UTC timestamp in the non-public records directory.
+
+If the backup is missing or corrupted, stop and obtain operator assistance. Never guess a path or restore into the account root.
 
 ## Operator handoff checklist
 

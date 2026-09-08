@@ -61,6 +61,18 @@ The content was checked against:
 
 No unresolved implementation-versus-test contradiction was recorded in the source audit. The documented uncertainty is limited to the beta release status and the consumer's responsibility for compatibility between collector results and custom processors/renderers.
 
+## Production deployment workflow QA
+
+Deployment workflow review date: 2026-09-08.
+
+The first production workflow is now implemented in `.github/workflows/deploy.yml` and remains manually triggered through `workflow_dispatch`. It uses the protected `production` environment, Node.js 22, `npm ci`, the complete validation sequence, SSH key authentication, pinned `known_hosts`, and a concurrency group that prevents overlapping deployments.
+
+The workflow fails closed unless all six production secrets are non-empty, `DEPLOY_USER` is `hooksmomagdi`, and `DEPLOY_PATH` is exactly `/home/hooksmomagdi/public_html`. It packages only `dist/`, uploads to the non-public incoming area, extracts a commit-named release, verifies required output, backs up existing public content, synchronizes with rsync, records the commit/timestamp, and performs HTTPS smoke checks. Old releases are retained and there is no automatic rollback or cleanup.
+
+`robots.txt` continues to disallow all crawlers. Indexing must not be enabled until the first live deployment has been manually accepted over HTTPS.
+
+The workflow is ready to run once the protected environment secrets contain the verified server values and the production environment approval rules allow the operator to proceed. No production deployment has been run by this QA pass.
+
 ## Deployment readiness boundary
 
-The repository is pushed to `magdicom/hooks-docs`, but `hooks.momagdi.com` is not deployed. Before production configuration, the operator still needs the final cPanel document root, DNS target, SSL arrangement, restricted SSH user, SSH port, verified host key, and GitHub environment secrets described in `DEPLOYMENT.md`.
+The repository is pushed to `magdicom/hooks-docs`. Before the first run, verify the DNS target and SSL arrangement, confirm the exact cPanel document root and `hooksmomagdi` permissions, confirm the SSH port and pinned host key, populate the six protected `production` secrets, and confirm required GitHub environment reviewers. The workflow does not deploy automatically on push.
