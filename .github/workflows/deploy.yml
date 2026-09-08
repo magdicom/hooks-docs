@@ -187,7 +187,23 @@ jobs:
             tar -C "$deploy_path" -czf "$backup_dir/public_html.tar.gz" .
           fi
 
-          rsync -a --delete "$release_dir"/ "$deploy_path"/
+          rsync_bin=''
+          if command -v rsync >/dev/null 2>&1; then
+            rsync_bin="$(command -v rsync)"
+          else
+            for candidate in /usr/bin/rsync /bin/rsync /usr/local/bin/rsync; do
+              if [ -x "$candidate" ]; then
+                rsync_bin="$candidate"
+                break
+              fi
+            done
+          fi
+          if [ -z "$rsync_bin" ]; then
+            echo 'Refusing deployment: rsync is unavailable in the jailed deployment environment.' >&2
+            exit 1
+          fi
+
+          "$rsync_bin" -a --delete "$release_dir"/ "$deploy_path"/
           timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
           {
             printf 'commit=%s\n' "$deploy_sha"
