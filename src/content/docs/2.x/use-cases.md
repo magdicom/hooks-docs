@@ -11,6 +11,8 @@ The examples on this page use a recommended naming style: lowercase, dot-separat
 
 The snippets focus on the important lines, so they omit `<?php` and `declare(strict_types=1);`. Your application can use strict types according to its own project conventions; Hooks does not require that declaration specifically.
 
+Unless a section says Laravel, `$hooks` refers to a `Magdicom\Hooks` instance created with `new Hooks()` or provided through constructor injection. Core calls are instance methods such as `$hooks->addAction(...)`; the core class does not offer static calls or global state.
+
 ## Invoice-paid extensions with an action
 
 ### The problem

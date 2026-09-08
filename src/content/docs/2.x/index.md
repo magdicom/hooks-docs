@@ -7,7 +7,7 @@ description: Learn how to add clear, synchronous extension points to a PHP appli
 
 Hooks lets your application expose named places where other code can participate without changing the original class. These places are called hook points. A hook point can run side effects, transform a value, or gather contributions from several callbacks.
 
-The core package is framework-independent and synchronous. If you use Laravel, the optional integration adds auto-discovery, container-backed resolution, a facade, and the `hooks()` helper. The underlying model stays the same: callbacks run in a clear order, during the current call.
+The core package is framework-independent and synchronous. Use a `Magdicom\Hooks` instance in a plain PHP application; the core package does not add global helper or static state. If you use Laravel, the optional integration adds auto-discovery, container-backed resolution, a facade, and the `hooks()` helper. The helper and facade resolve the same Laravel singleton, while the underlying model stays the same: callbacks run in a clear order during the current call.
 
 This site covers `magdicom/hooks` `v2.0.0-beta.1` and `magdicom/laravel-hooks` `v2.0.0-beta.2`. The [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md) links the package metadata, implementation, and tests behind these pages.
 

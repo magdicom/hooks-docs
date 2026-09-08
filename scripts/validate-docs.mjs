@@ -94,6 +94,9 @@ for (const { file, code } of phpBlocks) {
 const allText = sourceFiles.map((file) => readFileSync(file, 'utf8')).join('\n')
 if (!allText.includes('composer require magdicom/hooks:"^2.0@beta"')) fail('installation: core beta Composer command is missing')
 if (!allText.includes('composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"')) fail('installation: Laravel beta Composer command is missing')
+if (/Magdicom\\Hooks::(?!class\b)/.test(allText)) fail('source: core Magdicom\\Hooks must not be documented with static calls')
+if (!allText.includes('use Magdicom\\LaravelHooks\\Facades\\Hooks;')) fail('laravel: complete facade import is missing')
+if (!allText.includes('hooks()->addAction(')) fail('laravel: helper calling style is missing')
 for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'order.receipt.sections', 'checkout.allowed']) {
   if (!allText.includes(hookPoint)) fail(`use-cases: expected hook point is missing: ${hookPoint}`)
 }

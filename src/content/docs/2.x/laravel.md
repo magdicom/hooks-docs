@@ -9,6 +9,15 @@ The optional `magdicom/laravel-hooks` package connects the framework-independent
 
 This page covers `magdicom/laravel-hooks` `v2.0.0-beta.2` with `magdicom/hooks` `v2.0.0-beta.1`. See the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set) for the package details behind these examples.
 
+## Core class and Laravel access
+
+There are two classes named `Hooks`, but they serve different purposes:
+
+- `Magdicom\Hooks` is the core instance class. In a framework-independent application, create an instance with `new Hooks()` and call methods on that instance. The core package intentionally does not provide a global helper or static state.
+- `Magdicom\LaravelHooks\Facades\Hooks` is the Laravel facade. Its static-looking calls are forwarded to the Hooks singleton managed by Laravel.
+
+In Laravel, `hooks()` is the simplest application-level syntax. The helper and facade resolve the same application singleton:
+
 ## Install and auto-discovery
 
 Install both beta packages explicitly:
@@ -56,29 +65,29 @@ hooks()->doAction('invoice.paid', 42);
 
 Passing arguments to `hooks()` throws `InvalidArgumentException`. Pass those arguments to `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`.
 
-## Facade
+## Facade alternative
 
-The package provides `Magdicom\LaravelHooks\Facades\Hooks`. Give it an alias when you also import the core `Hooks` class:
+Use the facade when its static-looking syntax fits the surrounding Laravel code. Keep it as an alternative to the helper rather than mixing both styles in one operation:
 
 ```php
 <?php
 
 declare(strict_types=1);
 
-use Magdicom\LaravelHooks\Facades\Hooks as HooksFacade;
+use Magdicom\LaravelHooks\Facades\Hooks;
 
-HooksFacade::addFilter('profile.label', static function (string $label): string {
+Hooks::addFilter('profile.label', static function (string $label): string {
     return strtoupper($label);
 });
 
-$label = HooksFacade::applyFilters('profile.label', 'administrator');
+$label = Hooks::applyFilters('profile.label', 'administrator');
 ```
 
 The facade uses the same container binding as `app(Magdicom\Hooks::class)` and `hooks()`.
 
 ## Dependency injection
 
-Because the core object is in the container, your services can type-hint `Magdicom\Hooks`:
+Because the core object is in the container, your services can type-hint `Magdicom\Hooks`. Constructor injection is the recommended style inside application services, jobs, commands, and other testable classes:
 
 ```php
 <?php
