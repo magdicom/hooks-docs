@@ -5,12 +5,12 @@ import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
 import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
 ---
 
-<div class="header">
+<div class="header" data-header>
   <div class="title-wrapper sl-flex">
     <SiteTitle />
   </div>
   <nav class="primary-nav" aria-label="Primary navigation">
-    <a href="/docs/2.x/">Docs</a>
+    <a href="/docs/2.x/" aria-label="Hooks documentation">Docs</a>
     <a href="/docs/2.x/concepts">Concepts</a>
     <a href="/docs/2.x/laravel">Laravel</a>
     <a href="/docs/2.x/upgrade">Upgrade</a>
@@ -51,6 +51,7 @@ import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
 
   .primary-nav a,
   .primary-nav summary {
+    padding: 0.35rem 0.2rem;
     color: var(--sl-color-gray-1);
     text-decoration: none;
     cursor: pointer;
@@ -80,6 +81,16 @@ import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
     box-shadow: var(--sl-shadow-md);
   }
 
+  .version-menu a {
+    display: block;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.25rem;
+  }
+
+  .version-menu a:hover {
+    background: var(--sl-color-accent-low);
+  }
+
   .actions {
     gap: 0.75rem;
     align-items: center;
@@ -94,6 +105,20 @@ import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
     .primary-nav,
     .social-icons {
       display: flex;
+    }
+  }
+
+  @media (max-width: 32rem) {
+    .header {
+      gap: 0.5rem;
+    }
+
+    .actions {
+      gap: 0.35rem;
+    }
+
+    .social-icons {
+      display: none;
     }
   }
 </style>

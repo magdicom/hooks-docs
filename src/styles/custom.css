@@ -1,22 +1,94 @@
 :root {
+  --hooks-ink: #172033;
+  --hooks-muted: #526079;
+  --hooks-mint: #147d68;
+  --hooks-gold: #f2c879;
   --sl-color-accent-low: #dff8ef;
   --sl-color-accent: #147d68;
   --sl-color-accent-high: #075343;
   --sl-color-white: #172033;
   --sl-color-gray-1: #263149;
   --sl-color-gray-2: #526079;
+  --sl-color-gray-5: #c9d3d0;
+  --sl-color-gray-6: #e4ebe9;
+  --sl-color-bg: #ffffff;
+  --sl-color-bg-nav: #ffffff;
+  --sl-color-bg-sidebar: #f7faf9;
 }
 
 :root[data-theme='dark'] {
+  --hooks-ink: #f5f7fb;
+  --hooks-muted: #a8b2c5;
+  --hooks-mint: #8ee6c8;
+  --hooks-gold: #f2c879;
   --sl-color-accent-low: #123c35;
   --sl-color-accent: #8ee6c8;
   --sl-color-accent-high: #dff8ef;
   --sl-color-white: #f5f7fb;
   --sl-color-gray-1: #d0d7e5;
   --sl-color-gray-2: #a8b2c5;
+  --sl-color-gray-5: #3d4c49;
+  --sl-color-gray-6: #273732;
+  --sl-color-bg: #101715;
+  --sl-color-bg-nav: #101715;
+  --sl-color-bg-sidebar: #16231f;
 }
 
-:where(a, button):focus-visible {
+:root {
+  --sl-font: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sl-font-system: var(--sl-font);
+  --sl-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  color: var(--hooks-ink);
+}
+
+::selection {
+  color: var(--sl-color-white);
+  background: var(--sl-color-accent);
+}
+
+:where(a, button, summary, select, input):focus-visible {
   outline: 3px solid #f2c879;
   outline-offset: 3px;
+}
+
+.sl-markdown-content pre {
+  max-width: 100%;
+  border: 1px solid var(--sl-color-gray-5);
+  box-shadow: 0 0.75rem 2rem color-mix(in srgb, #000 8%, transparent);
+}
+
+.sl-markdown-content :not(pre) > code {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.3rem;
+  padding: 0.12em 0.35em;
+  background: var(--sl-color-bg-sidebar);
+}
+
+.sl-markdown-content blockquote {
+  border-inline-start-color: var(--sl-color-accent);
+  background: var(--sl-color-bg-sidebar);
+}
+
+.sl-markdown-content a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 0.08em;
+}
+
+@media (max-width: 50rem) {
+  .sl-markdown-content {
+    font-size: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }

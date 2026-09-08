@@ -25,4 +25,98 @@ const description = 'Composable actions, filters, and result collection for mode
       <a href="/docs/2.x/">Read the documentation</a>
     </main>
   </body>
+  <style>
+    :global(*) {
+      box-sizing: border-box;
+    }
+
+    :global(body) {
+      margin: 0;
+      color: #172033;
+      background: #f7faf9;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    :global(a) {
+      color: #075343;
+    }
+
+    main {
+      display: grid;
+      align-content: center;
+      min-height: 100vh;
+      max-width: 52rem;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    p:first-child {
+      margin: 0;
+      color: #147d68;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0.75rem 0 0;
+      color: #172033;
+      font-size: clamp(3rem, 12vw, 7rem);
+      line-height: 0.95;
+      letter-spacing: -0.07em;
+    }
+
+    p:not(:first-child) {
+      max-width: 38rem;
+      color: #526079;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      line-height: 1.6;
+    }
+
+    a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: fit-content;
+      margin-top: 1rem;
+      padding: 0.8rem 1.1rem;
+      border-radius: 0.45rem;
+      color: #ffffff;
+      background: #147d68;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    a:hover {
+      background: #075343;
+    }
+
+    a:focus-visible {
+      outline: 3px solid #f2c879;
+      outline-offset: 3px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :global(body) {
+        color: #f5f7fb;
+        background: #101715;
+      }
+
+      h1 {
+        color: #f5f7fb;
+      }
+
+      p:not(:first-child) {
+        color: #a8b2c5;
+      }
+    }
+
+    @media (max-width: 40rem) {
+      main {
+        min-height: 90vh;
+        padding: 2rem 1.25rem;
+      }
+    }
+  </style>
 </html>
