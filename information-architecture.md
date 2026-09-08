@@ -1,6 +1,6 @@
 # Hooks Documentation Information Architecture
 
-This is the approved route, navigation, and versioning contract for the first Hooks documentation website. It is intentionally separate from implementation details so the VitePress scaffold and content work can be reviewed against a stable map.
+This is the approved route, navigation, and versioning contract for the first Hooks documentation website. It is intentionally separate from implementation details so the Astro/Starlight scaffold and content work can be reviewed against a stable map.
 
 ## Product and URL assumptions
 
@@ -8,7 +8,7 @@ This is the approved route, navigation, and versioning contract for the first Ho
 - Production canonical origin: `https://hooks.momagdi.com`.
 - Current documentation version: **2.x Beta**.
 - Site root is the concise landing page; versioned technical content lives below `/docs/2.x/`.
-- VitePress is configured with a root base (`/`) and clean URLs enabled.
+- Astro is configured for static output with a root base (`/`) and Starlight serves the versioned documentation tree.
 - Leaf documentation URLs do not expose `.html` or `.md`.
 - The site is static. Route behavior must work when the generated output is copied to an Apache document root.
 - `/docs` is an entry route only and redirects users to `/docs/2.x/`.
@@ -21,17 +21,17 @@ The visual system must remain original to Hooks. The information architecture ma
 | --- | --- | --- | --- |
 | `/` | `index.md` | Landing page, beta notice, concepts, examples, comparison guidance, and primary links | Everyone |
 | `/docs` | generated redirect page | Redirects to `/docs/2.x/` | Everyone entering the docs root |
-| `/docs/2.x/` | `docs/2.x/index.md` | Introduction and version landing page | New and returning users |
-| `/docs/2.x/installation` | `docs/2.x/installation.md` | Core and Laravel beta installation, requirements, Composer stability guidance | New users |
-| `/docs/2.x/concepts` | `docs/2.x/concepts.md` | Choosing actions, filters, collectors, Events, or Pipeline | New and integrating users |
-| `/docs/2.x/actions` | `docs/2.x/actions.md` | Action registration, invocation, priority, return behavior, handles, and empty dispatch | Core users |
-| `/docs/2.x/filters` | `docs/2.x/filters.md` | Sequential transformation and invocation arguments | Core users |
-| `/docs/2.x/collectors` | `docs/2.x/collectors.md` | Raw result collection, ordering, empty results, and explicit arguments | Core users |
-| `/docs/2.x/processors` | `docs/2.x/processors.md` | Collector processors, contracts, built-ins, inputs, outputs, failures, and examples | Core users |
-| `/docs/2.x/renderers` | `docs/2.x/renderers.md` | Collector renderers, string contract, built-ins, and examples | Core users |
-| `/docs/2.x/laravel` | `docs/2.x/laravel.md` | Auto-discovery, facade, helper, container, resolver, singleton, and long-running processes | Laravel users |
-| `/docs/2.x/upgrade` | `docs/2.x/upgrade.md` | Version-1 to 2.x migration mappings and removed APIs | Existing users |
-| `/docs/2.x/api` | `docs/2.x/api.md` | Human-written public API summary with signatures, returns, exceptions, and applicable types | Reference users |
+| `/docs/2.x/` | `src/content/docs/2.x/index.md` | Introduction and version landing page | New and returning users |
+| `/docs/2.x/installation` | `src/content/docs/2.x/installation.md` | Core and Laravel beta installation, requirements, Composer stability guidance | New users |
+| `/docs/2.x/concepts` | `src/content/docs/2.x/concepts.md` | Choosing actions, filters, collectors, Events, or Pipeline | New and integrating users |
+| `/docs/2.x/actions` | `src/content/docs/2.x/actions.md` | Action registration, invocation, priority, return behavior, handles, and empty dispatch | Core users |
+| `/docs/2.x/filters` | `src/content/docs/2.x/filters.md` | Sequential transformation and invocation arguments | Core users |
+| `/docs/2.x/collectors` | `src/content/docs/2.x/collectors.md` | Raw result collection, ordering, empty results, and explicit arguments | Core users |
+| `/docs/2.x/processors` | `src/content/docs/2.x/processors.md` | Collector processors, contracts, built-ins, inputs, outputs, failures, and examples | Core users |
+| `/docs/2.x/renderers` | `src/content/docs/2.x/renderers.md` | Collector renderers, string contract, built-ins, and examples | Core users |
+| `/docs/2.x/laravel` | `src/content/docs/2.x/laravel.md` | Auto-discovery, facade, helper, container, resolver, singleton, and long-running processes | Laravel users |
+| `/docs/2.x/upgrade` | `src/content/docs/2.x/upgrade.md` | Version-1 to 2.x migration mappings and removed APIs | Existing users |
+| `/docs/2.x/api` | `src/content/docs/2.x/api.md` | Human-written public API summary with signatures, returns, exceptions, and applicable types | Reference users |
 
 The `/docs/2.x/` page is the introduction. A separate `/docs/2.x/introduction` route is intentionally not created, avoiding duplicate canonical content and preserving the requested URL set.
 
@@ -40,24 +40,28 @@ The `/docs/2.x/` page is the introduction. A separate `/docs/2.x/introduction` r
 The planned Markdown tree is:
 
 ```text
-index.md
-docs/
-├── index.md                 # redirect target for /docs
-└── 2.x/
-    ├── index.md             # introduction and version landing page
-    ├── installation.md
-    ├── concepts.md
-    ├── actions.md
-    ├── filters.md
-    ├── collectors.md
-    ├── processors.md
-    ├── renderers.md
-    ├── laravel.md
-    ├── upgrade.md
-    └── api.md
+src/
+├── pages/
+│   └── index.astro          # root landing page
+└── content/
+    ├── content.config.ts
+    └── docs/
+        ├── index.md         # redirect target for /docs
+        └── 2.x/
+            ├── index.md     # introduction and version landing page
+            ├── installation.md
+            ├── concepts.md
+            ├── actions.md
+            ├── filters.md
+            ├── collectors.md
+            ├── processors.md
+            ├── renderers.md
+            ├── laravel.md
+            ├── upgrade.md
+            └── api.md
 ```
 
-The root `docs/index.md` should contain only a clear redirect mechanism and a fallback link to `/docs/2.x/` for clients that do not automatically follow it. It must not become a second documentation landing page.
+The `src/content/docs/index.md` page should contain only a clear redirect mechanism and a fallback link to `/docs/2.x/` for clients that do not automatically follow it. It must not become a second documentation landing page.
 
 ## Header navigation
 
@@ -165,12 +169,12 @@ These are acceptance criteria for the scaffold and validation tasks:
 
 ## Implementation handoff
 
-The VitePress configuration task should implement this contract with:
+The Astro/Starlight configuration should implement this contract with:
 
-- `cleanUrls: true`;
-- explicit `themeConfig.nav` and `themeConfig.sidebar` for the 2.x tree;
+- Starlight’s sidebar configuration for the 2.x tree;
 - a generated or static redirect page at `/docs`;
-- a version-selector component/configuration that keeps `2.x Beta` visible;
-- `editLink.pattern` scoped to `docs/2.x/:path`;
-- local search enabled;
-- a future-version configuration shape that can add sibling sidebars without rewriting current routes.
+- a custom header component that keeps `2.x Beta` visible;
+- Starlight’s `editLink.baseUrl` scoped to `src/content/docs/`;
+- Pagefind local search;
+- a future-version configuration shape that can add sibling sidebars without rewriting current routes;
+- Astro static output in `dist/`.

@@ -14,4 +14,4 @@ Use released method signatures and complete PHP examples with `declare(strict_ty
 
 ## Scope
 
-This repository contains static Markdown/VitePress documentation only. Do not add Laravel, PHP runtime dependencies, databases, CMS features, authentication, analytics, cookies, tracking, or production deployment configuration unless a separate approved task requires it.
+This repository contains static Markdown/Astro/Starlight documentation only. Markdown pages live under `src/content/docs/`. Do not add Laravel, PHP runtime dependencies, databases, CMS features, authentication, analytics, cookies, tracking, or production deployment configuration unless a separate approved task requires it.

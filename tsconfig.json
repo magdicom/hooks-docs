@@ -12,5 +12,6 @@
     "strict": true,
     "target": "ES2022"
   },
-  "include": [".vitepress/**/*.ts"]
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "src/**/*.ts", "src/**/*.astro", "astro.config.mjs"]
 }

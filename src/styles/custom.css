@@ -1,0 +1,22 @@
+:root {
+  --sl-color-accent-low: #dff8ef;
+  --sl-color-accent: #147d68;
+  --sl-color-accent-high: #075343;
+  --sl-color-white: #172033;
+  --sl-color-gray-1: #263149;
+  --sl-color-gray-2: #526079;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #123c35;
+  --sl-color-accent: #8ee6c8;
+  --sl-color-accent-high: #dff8ef;
+  --sl-color-white: #f5f7fb;
+  --sl-color-gray-1: #d0d7e5;
+  --sl-color-gray-2: #a8b2c5;
+}
+
+:where(a, button):focus-visible {
+  outline: 3px solid #f2c879;
+  outline-offset: 3px;
+}

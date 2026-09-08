@@ -1,0 +1,99 @@
+---
+import Search from '@astrojs/starlight/components/Search.astro'
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro'
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro'
+import ThemeSelect from '@astrojs/starlight/components/ThemeSelect.astro'
+---
+
+<div class="header">
+  <div class="title-wrapper sl-flex">
+    <SiteTitle />
+  </div>
+  <nav class="primary-nav" aria-label="Primary navigation">
+    <a href="/docs/2.x/">Docs</a>
+    <a href="/docs/2.x/concepts">Concepts</a>
+    <a href="/docs/2.x/laravel">Laravel</a>
+    <a href="/docs/2.x/upgrade">Upgrade</a>
+    <details>
+      <summary>2.x Beta</summary>
+      <div class="version-menu">
+        <a href="/docs/2.x/">2.x Beta</a>
+        <a href="/docs/2.x/upgrade#version-1">1.x (historical)</a>
+      </div>
+    </details>
+  </nav>
+  <div class="actions sl-flex print:hidden">
+    <Search />
+    <div class="social-icons"><SocialIcons /></div>
+    <ThemeSelect />
+  </div>
+</div>
+
+<style>
+  .header {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+  }
+
+  .title-wrapper {
+    min-width: max-content;
+  }
+
+  .primary-nav {
+    display: none;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
+  .primary-nav a,
+  .primary-nav summary {
+    color: var(--sl-color-gray-1);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .primary-nav a:hover,
+  .primary-nav summary:hover {
+    color: var(--sl-color-text-accent);
+  }
+
+  .primary-nav details {
+    position: relative;
+  }
+
+  .version-menu {
+    position: absolute;
+    z-index: 10;
+    top: 1.75rem;
+    right: 0;
+    display: grid;
+    gap: 0.5rem;
+    min-width: 9rem;
+    padding: 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background: var(--sl-color-bg-nav);
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  .actions {
+    gap: 0.75rem;
+    align-items: center;
+    min-width: max-content;
+  }
+
+  .social-icons {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .primary-nav,
+    .social-icons {
+      display: flex;
+    }
+  }
+</style>

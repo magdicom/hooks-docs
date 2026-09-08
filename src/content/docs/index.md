@@ -1,10 +1,10 @@
 ---
 title: Documentation
 description: Hooks documentation versions.
-layout: page
+template: splash
 ---
 
-<meta http-equiv="refresh" content="0;url=/docs/2.x/">
+<meta http-equiv="refresh" content="0;url=/docs/2.x/" />
 
 # Hooks documentation
 

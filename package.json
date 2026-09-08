@@ -10,13 +10,16 @@
     "npm": ">=10"
   },
   "scripts": {
-    "dev": "vitepress dev .",
-    "build": "vitepress build .",
-    "preview": "vitepress preview .",
-    "typecheck": "tsc --noEmit"
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "check": "astro check"
   },
   "devDependencies": {
-    "typescript": "^5.7.2",
-    "vitepress": "^1.6.4"
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/starlight": "^0.42.0",
+    "astro": "^7.3.1",
+    "typescript": "^5.7.2"
   }
 }
