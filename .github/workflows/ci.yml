@@ -24,13 +24,13 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Check Astro project
+      - name: Type-check Astro project
         run: npm run astro -- check
 
       - name: Build static site
         run: npm run build
 
-      - name: Validate documentation
+      - name: Validate Markdown, links, routes, examples, and secrets
         run: npm run validate
 
       - name: Smoke test static preview

@@ -30,3 +30,5 @@ The generated site uses `https://hooks.momagdi.com` for canonical and sitemap UR
 Markdown documentation lives under `src/content/docs/` and is rendered by Starlight. The static site is generated in `dist/` and can later be copied to an Apache document root. This repository does not contain Laravel, PHP runtime, database, CMS, authentication, or deployment dependencies.
 
 The site is maintained separately from the [`magdicom/hooks`](https://github.com/magdicom/hooks) and [`magdicom/laravel-hooks`](https://github.com/magdicom/laravel-hooks) package repositories.
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the source-of-truth, review, validation, versioning, and non-deployment rules for documentation changes.
