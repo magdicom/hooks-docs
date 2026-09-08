@@ -14,7 +14,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check"
+    "check": "astro check",
+    "validate": "node scripts/validate-docs.mjs",
+    "preview:smoke": "node scripts/preview-smoke.mjs"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",

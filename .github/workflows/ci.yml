@@ -29,3 +29,9 @@ jobs:
 
       - name: Build static site
         run: npm run build
+
+      - name: Validate documentation
+        run: npm run validate
+
+      - name: Smoke test static preview
+        run: npm run preview:smoke
