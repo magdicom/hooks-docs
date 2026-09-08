@@ -3,6 +3,8 @@ title: API reference
 description: Signatures and return values for the Hooks 2.x public API.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 # API reference
 
 Use this page when you need the exact public methods behind [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), and [collectors](/docs/2.x/collectors). It explains how to register, inspect, order, and remove callbacks, with signatures and return values in one place.
@@ -21,25 +23,41 @@ addCollector(string $hookPoint, array|callable $callback, int $priority = 10): R
 
 Registrations belong to the `Hooks` instance that created them. The default priority is `10`. Lower numbers run first, and equal priorities retain registration order.
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $hooks->addAction('profile.updated', static function (int $profileId): void {
+        // Runs first.
+    }, priority: 5);
 
-$hooks = new Hooks();
+    $hooks->addAction('profile.updated', static function (int $profileId): void {
+        // Runs second.
+    });
 
-$hooks->addAction('profile.updated', static function (int $profileId): void {
-    // Runs first.
-}, priority: 5);
+    $hooks->doAction('profile.updated', 42);
+    ```
 
-$hooks->addAction('profile.updated', static function (int $profileId): void {
-    // Runs second.
-});
+  </TabItem>
+  <TabItem label="Laravel">
 
-$hooks->doAction('profile.updated', 42);
-```
+    ```php
+    hooks()->addAction('profile.updated', static function (int $profileId): void {
+        // Runs first.
+    }, priority: 5);
+
+    hooks()->addAction('profile.updated', static function (int $profileId): void {
+        // Runs second.
+    });
+
+    hooks()->doAction('profile.updated', 42);
+    ```
+
+  </TabItem>
+</Tabs>
 
 The returned `RegistrationHandle` identifies that exact registration, including its hook point, type, priority, and registration id.
 
@@ -58,19 +76,31 @@ belongsTo(Hooks $hooks): bool
 
 `remove()` is registration-id based. It removes the exact registration and returns `true`; calling it after that registration has already been removed returns `false`:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $handle = $hooks->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
 
-$hooks = new Hooks();
-$handle = $hooks->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
+    $handle->remove(); // true
+    $handle->remove(); // false
+    ```
 
-$handle->remove(); // true
-$handle->remove(); // false
-```
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    $handle = hooks()->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
+
+    $handle->remove(); // true
+    $handle->remove(); // false
+    ```
+
+  </TabItem>
+</Tabs>
 
 This matters when you register equivalent or duplicate callbacks. A handle belongs to the particular `Hooks` object that returned it. `belongsTo($hooks)` checks that exact ownership rather than comparing configuration.
 

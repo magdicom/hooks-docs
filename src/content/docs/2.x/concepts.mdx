@@ -3,6 +3,8 @@ title: Concepts
 description: Choose the right Hooks type for side effects, value changes, or collected results.
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 # Concepts
 
 # Choose a hook type
@@ -21,21 +23,33 @@ All three types support priorities. The default is `10`; lower numbers run first
 
 An action callback receives the arguments passed to `doAction()`. Its return value is intentionally ignored:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+        // Notify a synchronous integration.
+    });
 
-$hooks = new Hooks();
+    $hooks->doAction('invoice.paid', 42);
+    ```
 
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
-    // Notify a synchronous integration.
-});
+  </TabItem>
+  <TabItem label="Laravel">
 
-$hooks->doAction('invoice.paid', 42);
-```
+    ```php
+    hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
+        // Notify a synchronous integration.
+    });
+
+    hooks()->doAction('invoice.paid', 42);
+    ```
+
+  </TabItem>
+</Tabs>
 
 With no listeners, `doAction()` simply returns `void`. Use an action when the caller needs to trigger work, not when it needs a transformed value or a list of results.
 
@@ -43,21 +57,33 @@ With no listeners, `doAction()` simply returns `void`. Use an action when the ca
 
 The current value is always the first callback argument. Any additional arguments passed to `applyFilters()` follow it. Each callback's return value becomes the value given to the next callback:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $hooks->addFilter('email.subject', static function (string $title, string $locale): string {
+        return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
+    });
 
-$hooks = new Hooks();
+    $displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
+    ```
 
-$hooks->addFilter('email.subject', static function (string $title, string $locale): string {
-    return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
-});
+  </TabItem>
+  <TabItem label="Laravel">
 
-$displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
-```
+    ```php
+    hooks()->addFilter('email.subject', static function (string $title, string $locale): string {
+        return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
+    });
+
+    $displayTitle = hooks()->applyFilters('email.subject', 'Release notes', 'en');
+    ```
+
+  </TabItem>
+</Tabs>
 
 When no filter is registered, `applyFilters()` returns the value it was given. Priorities determine order; equal-priority filters run in registration order.
 
@@ -65,21 +91,33 @@ When no filter is registered, `applyFilters()` returns the value it was given. P
 
 A collector invokes each listener with the explicit arguments and returns one raw array entry per listener:
 
-```php
-<?php
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
 
-declare(strict_types=1);
+    ```php
+    use Magdicom\Hooks;
 
-use Magdicom\Hooks;
+    $hooks = new Hooks();
+    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
+    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
 
-$hooks = new Hooks();
+    $cards = $hooks->collect('dashboard.widgets', 'user-42');
+    // [['owner' => 'user-42'], ['count' => 3]]
+    ```
 
-$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
-$hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+  </TabItem>
+  <TabItem label="Laravel">
 
-$cards = $hooks->collect('dashboard.widgets', 'user-42');
-// [['owner' => 'user-42'], ['count' => 3]]
-```
+    ```php
+    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
+    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+
+    $cards = hooks()->collect('dashboard.widgets', 'user-42');
+    // [['owner' => 'user-42'], ['count' => 3]]
+    ```
+
+  </TabItem>
+</Tabs>
 
 `collect()` leaves the raw results alone. It does not flatten or merge them, and returns `[]` when there are no listeners. If you need to reduce or format those results, use `process()` or `render()`; see [processors](/docs/2.x/processors) and [renderers](/docs/2.x/renderers).
 
