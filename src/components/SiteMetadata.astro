@@ -1,0 +1,49 @@
+---
+const authorName = 'Mohamed Magdi'
+const authorId = 'https://momagdi.com/#person'
+const softwareId = 'https://hooks.momagdi.com/#software'
+const websiteId = 'https://hooks.momagdi.com/#website'
+
+const structuredData = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Person',
+      '@id': authorId,
+      name: authorName,
+      url: 'https://momagdi.com',
+      sameAs: ['https://github.com/magdicom'],
+    },
+    {
+      '@type': 'SoftwareSourceCode',
+      '@id': softwareId,
+      name: 'Hooks',
+      description: 'Flexible hooks for modern PHP applications.',
+      url: 'https://hooks.momagdi.com',
+      codeRepository: 'https://github.com/magdicom/hooks',
+      programmingLanguage: 'PHP',
+      license: 'https://github.com/magdicom/hooks/blob/main/LICENSE.md',
+      author: { '@id': authorId },
+      documentation: 'https://hooks.momagdi.com/docs/2.x/',
+    },
+    {
+      '@type': 'WebSite',
+      '@id': websiteId,
+      name: 'Hooks Documentation',
+      url: 'https://hooks.momagdi.com',
+      creator: { '@id': authorId },
+      about: { '@id': softwareId },
+    },
+  ],
+}
+
+// Escape characters that could terminate a JSON-LD script element while keeping valid JSON.
+const serializedStructuredData = JSON.stringify(structuredData).replace(/[<>&]/g, (character) => {
+  const escapes = { '<': '\\u003c', '>': '\\u003e', '&': '\\u0026' }
+
+  return escapes[character as keyof typeof escapes]
+})
+---
+
+<meta name="author" content={authorName} />
+<script type="application/ld+json" is:inline set:html={serializedStructuredData}></script>

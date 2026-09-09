@@ -1,5 +1,6 @@
 ---
 import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
+import SiteMetadata from '../components/SiteMetadata.astro'
 
 const title = 'Hooks'
 const description = 'Flexible hooks for modern PHP applications.'
@@ -48,6 +49,7 @@ $userId = 'user-42';
 $widgets = hooks()->collect('dashboard.widgets', $userId);`
 const phpInstallCommand = 'composer require magdicom/hooks:"^2.0@beta"'
 const laravelInstallCommand = 'composer require magdicom/laravel-hooks:"^2.0@beta" magdicom/hooks:"^2.0@beta"'
+const currentYear = new Date().getUTCFullYear()
 ---
 
 <!doctype html>
@@ -62,6 +64,7 @@ const laravelInstallCommand = 'composer require magdicom/laravel-hooks:"^2.0@bet
     <meta property="og:description" content={description} />
     <meta property="og:url" content="https://hooks.momagdi.com/" />
     <meta property="og:site_name" content="Hooks" />
+    <SiteMetadata />
     <link rel="icon" href="/hooks-mark.svg" />
   </head>
   <body>
@@ -175,7 +178,7 @@ const laravelInstallCommand = 'composer require magdicom/laravel-hooks:"^2.0@bet
       <section class="closing-panel" aria-labelledby="next-title"><p class="eyebrow">Keep exploring</p><h2 id="next-title">Build your first extension point.</h2><div class="link-grid"><a href="/docs/2.x/concepts">Compare hook types <span>→</span></a><a href="/docs/2.x/processors">Process collector results <span>→</span></a><a href="/docs/2.x/api">Browse the API <span>→</span></a><a href="/docs/2.x/upgrade">Upgrade from 1.x <span>→</span></a><a href="https://github.com/magdicom/hooks">Core on GitHub <span>↗</span></a><a href="https://github.com/magdicom/laravel-hooks">Laravel package on GitHub <span>↗</span></a></div></section>
     </main>
 
-    <footer class="site-footer"><span>Hooks · composable extension points for PHP</span><a href="https://github.com/magdicom/hooks/releases">Releases</a></footer>
+    <footer class="site-footer"><span>Hooks · composable extension points for PHP</span><span>© 2022–{currentYear} <a href="https://momagdi.com" target="_blank" rel="noopener noreferrer">MoMagdi</a>. Hooks is released under the <a href="https://github.com/magdicom/hooks/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer">MIT License</a>.</span><a href="https://github.com/magdicom/hooks/releases">Releases</a></footer>
   </body>
 </html>
 
