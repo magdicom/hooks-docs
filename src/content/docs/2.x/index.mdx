@@ -24,16 +24,25 @@ The hook model stays the same in both environments. The PHP version creates the 
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addAction('invoice.paid', $callback);
-    $hooks->doAction('invoice.paid', $invoice);
+    $listener = static function (int $invoiceId): void {
+        error_log("Invoice {$invoiceId} was paid.");
+    };
+    $invoiceId = 42;
+
+    $hooks->addAction('invoice.paid', $listener);
+    $hooks->doAction('invoice.paid', $invoiceId);
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addAction('invoice.paid', $callback);
-    hooks()->doAction('invoice.paid', $invoice);
+    $invoiceId = 42;
+    hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
+        logger()->info('Invoice paid.', ['invoice_id' => $invoiceId]);
+    });
+
+    hooks()->doAction('invoice.paid', $invoiceId);
     ```
 
   </TabItem>
