@@ -4,6 +4,7 @@ description: Gather one independent result from each callback.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import MethodReference from '../../../components/MethodReference.astro';
 
 # Collectors
 
@@ -17,8 +18,23 @@ The collector methods have two jobs:
 
 | Method | Use it for | Returns |
 | --- | --- | --- |
-| `addCollector(string $hookPoint, array\|callable $callback, int $priority = 10)` | Registering a callback that contributes one independent result. | A `RegistrationHandle` for the exact registration. |
-| `collect(string $hookPoint, mixed ...$arguments)` | Invoking every collector with the same explicit arguments. | One raw result per listener, in priority and registration order. |
+| [`addCollector()`](#method-addcollector) | Registering a callback that contributes one result. | A `RegistrationHandle`. |
+| [`collect()`](#method-collect) | Invoking every collector with the same arguments. | One raw result per listener. |
+
+<MethodReference name="addCollector" signature={`public function addCollector(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): RegistrationHandle`} applies="Collectors" returns="A handle for this exact registration." empty="The registration is stored, but contributes nothing until collect() runs." exceptions="Callback and resolver exceptions surface when the collector is invoked." persistent="Yes. The callback remains registered until removed.">
+  you want an independent module to contribute one result to a collection.
+</MethodReference>
+
+<MethodReference name="collect" signature={`public function collect(
+    string $hookPoint,
+    mixed ...$arguments,
+): array`} applies="Collectors" returns="One raw callback result per listener, in priority and registration order." empty="An empty array is returned." exceptions="Exceptions from listeners bubble to the caller." persistent="No. It does not configure or change a processor or renderer.">
+  you want the raw contributions and will decide how to interpret them.
+</MethodReference>
 
 The default priority is `10`. `collect()` does not merge, flatten, process, or render the returned entries; choose those operations explicitly when you need them.
 

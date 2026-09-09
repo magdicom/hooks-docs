@@ -95,8 +95,21 @@ html {
   scroll-behavior: smooth;
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   color: var(--hooks-ink);
+}
+
+main,
+.sl-container,
+.sl-markdown-content {
+  min-width: 0;
+  max-width: 100%;
 }
 
 ::selection {
@@ -115,12 +128,83 @@ body {
   box-shadow: 0 0.75rem 2rem rgb(15 23 42 / 9%);
 }
 
+.sl-markdown-content table {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.sl-markdown-content th,
+.sl-markdown-content td {
+  min-width: 8rem;
+}
+
 .sl-markdown-content :not(pre) > code {
   border: 1px solid var(--hooks-border);
   border-radius: 0.3rem;
   padding: 0.12em 0.35em;
   background: var(--hooks-soft);
   color: var(--hooks-sky-hover);
+}
+
+.method-reference {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 1.5rem 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.65rem;
+  background: var(--hooks-surface-muted);
+}
+
+.method-reference h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+}
+
+.method-reference h3 a {
+  color: var(--sl-color-text-accent);
+}
+
+.method-signature {
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 0 0 0.9rem;
+  white-space: pre;
+}
+
+.method-details p {
+  margin: 0.45rem 0 0;
+}
+
+.method-use > p {
+  display: inline;
+  margin: 0 0 0 0.25rem;
+}
+
+@media (max-width: 50rem) {
+  main,
+  .content-panel,
+  .content-panel > .sl-container {
+    width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
+    overflow-x: hidden;
+  }
+
+  .sl-markdown-content {
+    width: 100%;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .method-reference {
+    margin-left: 0;
+    margin-right: 0;
+    padding: 0.85rem;
+  }
 }
 
 .sl-markdown-content blockquote {

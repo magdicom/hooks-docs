@@ -4,6 +4,7 @@ description: Turn collector results into formatted strings.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import MethodReference from '../../../components/MethodReference.astro';
 
 # Renderers
 
@@ -17,9 +18,31 @@ The renderer methods have distinct responsibilities:
 
 | Method | Use it for | Returns or does |
 | --- | --- | --- |
-| `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer)` | Choosing the formatter for a collector point. A class name is resolved when rendering runs. | The same `Hooks` instance. The renderer occupies the collector's processing slot. |
-| `render(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured renderer. | A `string`; throws `MissingRendererException` when unset and `InvalidRendererException` for invalid output or configuration. |
-| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments)` | Applying a renderer for one call without configuring the hook point. | A `string`; does not read or change the persistent processor slot. |
+| [`setRenderer()`](#method-setrenderer) | Configure the formatter for a collector point. | The same `Hooks` instance. |
+| [`render()`](#method-render) | Collect and format results. | A `string`. |
+| [`renderWith()`](#method-renderwith) | Format one call without changing configuration. | A `string`. |
+
+<MethodReference name="setRenderer" signature={`public function setRenderer(
+    string $hookPoint,
+    Renderer|callable|string $renderer,
+): self`} applies="Collectors and renderers" returns="The same Hooks instance." exceptions="Invalid renderer configuration is reported when render() resolves or invokes it." persistent="Yes. It stores or replaces the collector's shared processing slot.">
+  you want a collector to use one renderer for later render() calls.
+</MethodReference>
+
+<MethodReference name="render" signature={`public function render(
+    string $hookPoint,
+    mixed ...$arguments,
+): string`} applies="Collectors and renderers" returns="The configured renderer's string output." empty="The renderer receives an empty result array." exceptions="MissingRendererException is thrown when unset; InvalidRendererException covers invalid renderers and non-string output." persistent="No. It reads but does not change the configured slot.">
+  you need the configured renderer to turn collector results into a string.
+</MethodReference>
+
+<MethodReference name="renderWith" signature={`public function renderWith(
+    string $hookPoint,
+    Renderer|callable|string $renderer,
+    mixed ...$arguments,
+): string`} applies="Collectors and renderers" returns="The supplied renderer's string output." empty="The supplied renderer receives an empty result array." exceptions="InvalidRendererException is thrown for invalid configuration or non-string output; custom exceptions propagate." persistent="No. The supplied renderer is used once and is not stored.">
+  you need a different output format for one call without changing the persistent renderer.
+</MethodReference>
 
 Renderers apply only to collectors. Use `collect()` for raw results and `process()` for non-string reductions.
 

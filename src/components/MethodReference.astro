@@ -1,0 +1,27 @@
+---
+interface Props {
+  name: string
+  signature: string
+  applies: string
+  returns: string
+  empty?: string
+  exceptions?: string
+  persistent?: string
+}
+
+const { name, signature, applies, returns, empty, exceptions, persistent } = Astro.props
+const anchor = `method-${name.toLowerCase()}`
+---
+
+<article class="method-reference" id={anchor}>
+  <h3><a href={`#${anchor}`}>{name}()</a></h3>
+  <pre class="method-signature"><code>{signature}</code></pre>
+  <div class="method-details">
+    <div class="method-use"><strong>Use it when:</strong><slot /></div>
+    <p><strong>Applies to:</strong> {applies}</p>
+    <p><strong>Returns:</strong> {returns}</p>
+    {empty && <p><strong>With no listeners:</strong> {empty}</p>}
+    {exceptions && <p><strong>Exceptions:</strong> {exceptions}</p>}
+    {persistent && <p><strong>Configuration:</strong> {persistent}</p>}
+  </div>
+</article>

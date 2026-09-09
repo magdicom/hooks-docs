@@ -4,6 +4,7 @@ description: Turn collector results into the value your application needs.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import MethodReference from '../../../components/MethodReference.astro';
 
 # Processors
 
@@ -17,12 +18,46 @@ The processor methods have distinct responsibilities:
 
 | Method | Use it for | Returns or does |
 | --- | --- | --- |
-| `setProcessor(string $hookPoint, ResultProcessor\|callable\|string $processor)` | Choosing the reduction applied to a collector point. A class name is resolved when processing runs. | The same `Hooks` instance, so deliberate chaining remains possible. |
-| `hasProcessor(string $hookPoint)` | Checking whether a processor is configured before calling `process()`. | `bool`. |
-| `processor(string $hookPoint)` | Reading the configured processor reference for inspection or replacement logic. | The stored processor, callable, class name, or `null`. |
-| `clearProcessor(string $hookPoint)` | Removing the configured processor slot. | `true` when a slot existed; otherwise `false`. |
-| `process(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured processor. | The processor's output; throws `MissingProcessorException` when no processor is configured. |
-| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments)` | Applying a processor for one call without configuring the hook point. | The processor's output; does not read or change the persistent processor slot. |
+| [`setProcessor()`](#method-setprocessor) | Configure the reduction for a collector point. | The same `Hooks` instance. |
+| [`hasProcessor()`](#method-hasprocessor) | Check whether a processor is configured. | `bool`. |
+| [`processor()`](#method-processor) | Inspect the configured processor reference. | A processor, callable, class name, or `null`. |
+| [`clearProcessor()`](#method-clearprocessor) | Remove the configured processor. | `bool`. |
+| [`process()`](#method-process) | Collect and reduce results. | The processor output. |
+| [`processWith()`](#method-processwith) | Reduce one call without changing configuration. | The processor output. |
+
+<MethodReference name="setProcessor" signature={`public function setProcessor(
+    string $hookPoint,
+    ResultProcessor|callable|string $processor,
+): self`} applies="Collectors and processors" returns="The same Hooks instance." exceptions="An invalid class-name processor raises InvalidProcessorException when processing resolves it." persistent="Yes. It stores or replaces the collector's processing slot.">
+  you want every later process() call for a collector to use the same reduction.
+</MethodReference>
+
+<MethodReference name="hasProcessor" signature={`public function hasProcessor(string $hookPoint): bool`} applies="Collectors and processors" returns="true when a processor slot exists, otherwise false." persistent="No. It only inspects configuration.">
+  you need to check configuration before calling process().
+</MethodReference>
+
+<MethodReference name="processor" signature={`public function processor(string $hookPoint): ResultProcessor|callable|string|null`} applies="Collectors and processors" returns="The stored processor reference, or null." persistent="No. It only inspects configuration.">
+  you need to inspect or replace the current processor reference.
+</MethodReference>
+
+<MethodReference name="clearProcessor" signature={`public function clearProcessor(string $hookPoint): bool`} applies="Collectors and processors" returns="true when a slot was removed; false when none existed." persistent="Yes. It removes the processor slot.">
+  you want to stop using the configured processor for a collector.
+</MethodReference>
+
+<MethodReference name="process" signature={`public function process(
+    string $hookPoint,
+    mixed ...$arguments,
+): mixed`} applies="Collectors and processors" returns="The configured processor's output." empty="The collector supplies an empty array to the processor." exceptions="MissingProcessorException is thrown when no processor is configured; invalid processor classes raise InvalidProcessorException." persistent="No. It reads but does not change the configured slot.">
+  you want to collect and reduce a collector's results using its configured processor.
+</MethodReference>
+
+<MethodReference name="processWith" signature={`public function processWith(
+    string $hookPoint,
+    ResultProcessor|callable|string $processor,
+    mixed ...$arguments,
+): mixed`} applies="Collectors and processors" returns="The supplied processor's output." empty="The supplied processor receives an empty result array." exceptions="Invalid processor class references raise InvalidProcessorException; custom processor exceptions propagate." persistent="No. The supplied processor is used once and is not stored.">
+  you need a different reduction for one call without changing the persistent choice.
+</MethodReference>
 
 Processors apply only to collectors. `collect()` still returns the raw list and bypasses this configuration.
 

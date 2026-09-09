@@ -4,6 +4,7 @@ description: Run ordered callbacks for synchronous side effects.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import MethodReference from '../../../components/MethodReference.astro';
 
 # Actions
 
@@ -17,8 +18,23 @@ The action methods have two jobs:
 
 | Method | Use it for | Returns |
 | --- | --- | --- |
-| `addAction(string $hookPoint, array\|callable $callback, int $priority = 10)` | Registering a callback for a named side effect. The callback receives the arguments passed to `doAction()`. | A `RegistrationHandle` for the exact registration. |
-| `doAction(string $hookPoint, mixed ...$arguments)` | Running the registered action callbacks in priority order. | `void`; callback return values are ignored. |
+| [`addAction()`](#method-addaction) | Registering a callback for a named side effect. | A `RegistrationHandle`. |
+| [`doAction()`](#method-doaction) | Running registered callbacks in priority order. | `void`; callback returns are ignored. |
+
+<MethodReference name="addAction" signature={`public function addAction(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): RegistrationHandle`} applies="Actions" returns="A handle for this exact registration." empty="The registration is stored, but nothing runs until doAction() is called." exceptions="Callback and resolver exceptions surface when the action is invoked." persistent="Yes. The callback remains registered until its handle or a removal method is used.">
+  you want to register a synchronous side effect at a named hook point.
+</MethodReference>
+
+<MethodReference name="doAction" signature={`public function doAction(
+    string $hookPoint,
+    mixed ...$arguments,
+): void`} applies="Actions" returns="void; callback return values are ignored." empty="Nothing runs and void is returned." exceptions="Exceptions from listeners bubble to the caller." persistent="No. It only invokes the current listener snapshot.">
+  you want to run the side effects registered for an event-like hook point.
+</MethodReference>
 
 The default priority is `10`. Use a lower number when a listener must run earlier, or a higher number when it should run later.
 

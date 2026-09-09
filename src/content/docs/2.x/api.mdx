@@ -4,6 +4,7 @@ description: Signatures and return values for the Hooks 2.x public API.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
+import MethodReference from '../../../components/MethodReference.astro';
 
 # API reference
 
@@ -17,9 +18,31 @@ The published signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta
 
 | Method | What it registers | Return value |
 | --- | --- | --- |
-| `addAction(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback whose return value is ignored and whose purpose is a synchronous side effect. | A handle for this exact action registration. |
-| `addFilter(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback that receives the current value and returns the value passed to the next filter. | A handle for this exact filter registration. |
-| `addCollector(string $hookPoint, array\|callable $callback, int $priority = 10): RegistrationHandle` | A callback whose return value becomes one raw entry in the collector result list. | A handle for this exact collector registration. |
+| [`addAction()`](#method-addaction) | A callback for a synchronous side effect. | A registration handle. |
+| [`addFilter()`](#method-addfilter) | A callback that transforms the current value. | A registration handle. |
+| [`addCollector()`](#method-addcollector) | A callback that contributes one raw result. | A registration handle. |
+
+<MethodReference name="addAction" signature={`public function addAction(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): RegistrationHandle`} applies="Actions" returns="A RegistrationHandle." persistent="Yes; the callback remains until removed.">
+  you need to register a synchronous side effect.
+</MethodReference>
+<MethodReference name="addFilter" signature={`public function addFilter(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): RegistrationHandle`} applies="Filters" returns="A RegistrationHandle." persistent="Yes; the callback remains until removed.">
+  you need to register a value transformation.
+</MethodReference>
+<MethodReference name="addCollector" signature={`public function addCollector(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): RegistrationHandle`} applies="Collectors" returns="A RegistrationHandle." persistent="Yes; the callback remains until removed.">
+  you need to register one independent contribution.
+</MethodReference>
 
 All three accept a hook name, a PHP callable or callable array, and an optional priority. The default priority is `10`; lower numbers run first, and equal priorities keep registration order. The callback is invoked only when the matching dispatch method runs.
 
@@ -69,12 +92,31 @@ Each handle exposes:
 
 | Method | Purpose and return value |
 | --- | --- |
-| `id(): int` | Returns the internal registration id. It identifies this registration among otherwise equivalent callbacks. |
-| `hookPoint(): string` | Returns the exact string hook name used during registration. |
-| `type(): string` | Returns the registration type, such as `action`, `filter`, or `collector`. |
-| `priority(): int` | Returns the priority assigned to the registration. |
-| `remove(): bool` | Removes this exact registration and returns `true`; returns `false` if it was already removed. |
-| `belongsTo(Hooks $hooks): bool` | Checks whether this handle was created by that exact `Hooks` object. |
+| [`id()`](#method-id) | Returns the registration id. |
+| [`hookPoint()`](#method-hookpoint) | Returns the exact hook name. |
+| [`type()`](#method-type) | Returns `action`, `filter`, or `collector`. |
+| [`priority()`](#method-priority) | Returns the registration priority. |
+| [`remove()`](#method-remove) | Removes this exact registration. |
+| [`belongsTo()`](#method-belongsto) | Checks exact `Hooks` object ownership. |
+
+<MethodReference name="id" signature="public function id(): int" applies="Registration handles" returns="The internal registration id.">
+  you need to identify a registration among otherwise equivalent callbacks.
+</MethodReference>
+<MethodReference name="hookPoint" signature="public function hookPoint(): string" applies="Registration handles" returns="The exact string hook name.">
+  you need to inspect where the handle was registered.
+</MethodReference>
+<MethodReference name="type" signature="public function type(): string" applies="Registration handles" returns="The registration type: action, filter, or collector.">
+  you need to inspect what kind of registration the handle represents.
+</MethodReference>
+<MethodReference name="priority" signature="public function priority(): int" applies="Registration handles" returns="The assigned priority.">
+  you need to inspect ordering metadata.
+</MethodReference>
+<MethodReference name="remove" signature="public function remove(): bool" applies="Registration handles" returns="true when this exact registration is removed; false when already removed." persistent="Yes; it changes the registry.">
+  you need to remove precisely the registration represented by this handle.
+</MethodReference>
+<MethodReference name="belongsTo" signature="public function belongsTo(Hooks $hooks): bool" applies="Registration handles" returns="true only for the Hooks instance that created the handle.">
+  you need to verify exact object ownership before removing or sharing a handle.
+</MethodReference>
 
 The handle is a reference to a registration, not a copy of the callback. Keep it when a temporary extension needs to remove exactly the listener it added.
 
@@ -114,15 +156,55 @@ Use the inspection methods when you need to decide whether an extension point is
 
 | Method | What it tells you | Return details |
 | --- | --- | --- |
-| `has(string $hookPoint): bool` | Whether at least one action, filter, or collector is registered at the hook point. | `true` for any registration type; `false` when the point is empty. |
-| `hasAction(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether an action is registered. With a callback, checks that callback at the given priority. | Type-aware boolean result; a missing callback asks whether any action exists. |
-| `hasFilter(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether a filter is registered. With a callback, checks that exact callback and priority. | Type-aware boolean result; an action with the same callback does not satisfy it. |
-| `hasCollector(string $hookPoint, array\|callable\|null $callback = null, int $priority = 10): bool` | Whether a collector is registered. With a callback, checks that exact callback and priority. | Type-aware boolean result; actions and filters are not included. |
-| `count(?string $hookPoint = null): int` | How many registrations exist across all hook types. | With a hook point, counts only that point; without one, counts the entire registry. |
-| `listeners(string $hookPoint): array` | Every registration at the point, regardless of type. | Returns `RegistrationHandle` objects sorted by priority and registration order. |
-| `actions(string $hookPoint): array` | The action registrations at the point. | Returns action handles in dispatch order. |
-| `filters(string $hookPoint): array` | The filter registrations at the point. | Returns filter handles in dispatch order. |
-| `collectors(string $hookPoint): array` | The collector registrations at the point. | Returns collector handles in dispatch order. |
+| [`has()`](#method-has) | Whether any registration exists. | `bool`. |
+| [`hasAction()`](#method-hasaction) | Whether an action exists or matches. | Type-aware `bool`. |
+| [`hasFilter()`](#method-hasfilter) | Whether a filter exists or matches. | Type-aware `bool`. |
+| [`hasCollector()`](#method-hascollector) | Whether a collector exists or matches. | Type-aware `bool`. |
+| [`count()`](#method-count) | Count registrations. | `int`. |
+| [`listeners()`](#method-listeners) | List all handles at a point. | `RegistrationHandle[]`. |
+| [`actions()`](#method-actions) | List action handles. | `RegistrationHandle[]`. |
+| [`filters()`](#method-filters) | List filter handles. | `RegistrationHandle[]`. |
+| [`collectors()`](#method-collectors) | List collector handles. | `RegistrationHandle[]`. |
+
+<MethodReference name="has" signature="public function has(string $hookPoint): bool" applies="All hook types" returns="true when any registration exists; otherwise false." empty="false.">
+  you need to know whether a hook point has any listener.
+</MethodReference>
+<MethodReference name="hasAction" signature={`public function hasAction(
+    string $hookPoint,
+    array|callable|null $callback = null,
+    int $priority = 10,
+): bool`} applies="Actions" returns="A type-aware boolean; omitting the callback checks whether any action exists." empty="false when no matching action exists.">
+  you need to inspect an action or match its callback and priority.
+</MethodReference>
+<MethodReference name="hasFilter" signature={`public function hasFilter(
+    string $hookPoint,
+    array|callable|null $callback = null,
+    int $priority = 10,
+): bool`} applies="Filters" returns="A type-aware boolean; callback matching includes priority." empty="false when no matching filter exists.">
+  you need to inspect a filter without invoking it.
+</MethodReference>
+<MethodReference name="hasCollector" signature={`public function hasCollector(
+    string $hookPoint,
+    array|callable|null $callback = null,
+    int $priority = 10,
+): bool`} applies="Collectors" returns="A type-aware boolean; actions and filters are not included." empty="false when no matching collector exists.">
+  you need to inspect a collector without invoking it.
+</MethodReference>
+<MethodReference name="count" signature="public function count(?string $hookPoint = null): int" applies="All hook types" returns="The number of registrations, optionally limited to one hook point.">
+  you need a registration count for diagnostics or lifecycle checks.
+</MethodReference>
+<MethodReference name="listeners" signature="public function listeners(string $hookPoint): array" applies="All hook types" returns="Handles sorted by priority and registration order.">
+  you need every registration at a point regardless of type.
+</MethodReference>
+<MethodReference name="actions" signature="public function actions(string $hookPoint): array" applies="Actions" returns="Action handles in dispatch order.">
+  you need only the action registrations at a point.
+</MethodReference>
+<MethodReference name="filters" signature="public function filters(string $hookPoint): array" applies="Filters" returns="Filter handles in dispatch order.">
+  you need only the filter registrations at a point.
+</MethodReference>
+<MethodReference name="collectors" signature="public function collectors(string $hookPoint): array" applies="Collectors" returns="Collector handles in dispatch order.">
+  you need only the collector registrations at a point.
+</MethodReference>
 
 For `hasAction()`, `hasFilter()`, and `hasCollector()`, omit the callback when you only need to know whether that type has any registration. Pass the callback when callback identity and priority matter. The default priority is `10`; the priority argument is relevant to callback matching.
 
@@ -179,9 +261,31 @@ Removal by callback is type-aware:
 
 | Method | What it removes | Return value |
 | --- | --- | --- |
-| `removeAction(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching action callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
-| `removeFilter(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching filter callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
-| `removeCollector(string $hookPoint, array\|callable $callback, int $priority = 10): bool` | The first matching collector callback at that hook point and priority. | `true` when a matching registration was removed; otherwise `false`. |
+| [`removeAction()`](#method-removeaction) | Remove the first matching action callback. | `bool`. |
+| [`removeFilter()`](#method-removefilter) | Remove the first matching filter callback. | `bool`. |
+| [`removeCollector()`](#method-removecollector) | Remove the first matching collector callback. | `bool`. |
+
+<MethodReference name="removeAction" signature={`public function removeAction(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): bool`} applies="Actions" returns="true when the first matching registration is removed; otherwise false." persistent="Yes; it changes the registry.">
+  you want callback-based removal of one action at a specific priority.
+</MethodReference>
+<MethodReference name="removeFilter" signature={`public function removeFilter(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): bool`} applies="Filters" returns="true when the first matching registration is removed; otherwise false." persistent="Yes; it changes the registry.">
+  you want callback-based removal of one filter at a specific priority.
+</MethodReference>
+<MethodReference name="removeCollector" signature={`public function removeCollector(
+    string $hookPoint,
+    array|callable $callback,
+    int $priority = 10,
+): bool`} applies="Collectors" returns="true when the first matching registration is removed; otherwise false." persistent="Yes; it changes the registry.">
+  you want callback-based removal of one collector at a specific priority.
+</MethodReference>
 
 These methods remove the first matching callback of the requested type and priority. They do not accept a `RegistrationHandle`; call the handle's `remove()` method for exact registration-id removal. A callback registered as an action is not removed by `removeFilter()`.
 
@@ -189,12 +293,25 @@ Bulk methods remove registrations and return the number removed:
 
 | Method | What it removes |
 | --- | --- |
-| `removeAll(?string $hookPoint = null): int` | All actions, filters, and collectors at one hook point, or every registration when the argument is omitted. |
-| `removeAllActions(?string $hookPoint = null): int` | Only action registrations at one hook point, or all action registrations when omitted. |
-| `removeAllFilters(?string $hookPoint = null): int` | Only filter registrations at one hook point, or all filter registrations when omitted. |
-| `removeAllCollectors(?string $hookPoint = null): int` | Only collector registrations at one hook point, or all collector registrations when omitted. |
+| [`removeAll()`](#method-removeall) | Remove all hook types at a point or the whole registry. |
+| [`removeAllActions()`](#method-removeallactions) | Remove action registrations. |
+| [`removeAllFilters()`](#method-removeallfilters) | Remove filter registrations. |
+| [`removeAllCollectors()`](#method-removeallcollectors) | Remove collector registrations. |
 
 Each method returns the number of registrations it removed. A hook point limits the operation; omitting it is a registry-wide operation for the selected type.
+
+<MethodReference name="removeAll" signature="public function removeAll(?string $hookPoint = null): int" applies="All hook types" returns="The number of registrations removed." persistent="Yes; it changes the registry.">
+  you need to clear every hook type at one point, or the whole registry when the argument is omitted.
+</MethodReference>
+<MethodReference name="removeAllActions" signature="public function removeAllActions(?string $hookPoint = null): int" applies="Actions" returns="The number of action registrations removed." persistent="Yes; it changes the registry.">
+  you need to clear action registrations for one point or the registry.
+</MethodReference>
+<MethodReference name="removeAllFilters" signature="public function removeAllFilters(?string $hookPoint = null): int" applies="Filters" returns="The number of filter registrations removed." persistent="Yes; it changes the registry.">
+  you need to clear filter registrations for one point or the registry.
+</MethodReference>
+<MethodReference name="removeAllCollectors" signature="public function removeAllCollectors(?string $hookPoint = null): int" applies="Collectors" returns="The number of collector registrations removed." persistent="Yes; it changes the registry.">
+  you need to clear collector registrations for one point or the registry.
+</MethodReference>
 
 Passing a hook point limits removal to that point. Omitting it removes the relevant type across the registry; `removeAll()` removes all types.
 
@@ -236,10 +353,10 @@ The following summary covers the public methods on `Magdicom\Hooks`. Private hel
 
 | Method | Purpose and return value | Applies to / relevant exceptions |
 | --- | --- | --- |
-| `__construct(?Resolver $resolver = null)` | Creates a Hooks registry. Returns the new object; uses `NativeResolver` when no resolver is supplied. | Core; resolver construction errors can bubble from a custom resolver |
-| `doAction(string $hookPoint, mixed ...$arguments): void` | Invokes the action snapshot with the arguments exactly as passed. Callback returns are ignored. | Actions; listener and callback exceptions bubble |
-| `applyFilters(string $hookPoint, mixed $value, mixed ...$arguments): mixed` | Passes the current value first, then explicit arguments, through each filter and returns the final value. | Filters; listener and callback exceptions bubble |
-| `collect(string $hookPoint, mixed ...$arguments): array` | Returns one raw result per collector listener in dispatch order. | Collectors; listener and callback exceptions bubble |
+| [`__construct()`](#method-construct) | Create a Hooks registry. | `Hooks` instance. |
+| [`doAction()`](#method-doaction) | Invoke action listeners. | `void`. |
+| [`applyFilters()`](#method-applyfilters) | Transform a value sequentially. | Final `mixed` value. |
+| [`collect()`](#method-collect) | Gather raw collector results. | `array`. |
 
 Registration methods return a `RegistrationHandle` and default to priority `10`:
 
@@ -255,17 +372,59 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 
 | Method | Purpose and return value | Applies to / relevant exceptions |
 | --- | --- | --- |
-| `setProcessor(string $hookPoint, ResultProcessor\|callable\|string $processor): self` | Stores or replaces the processor slot and returns the same Hooks object for deliberate method chaining. | Collectors; class-name processors must implement `ResultProcessor`, otherwise `InvalidProcessorException` is raised when invoked |
-| `hasProcessor(string $hookPoint): bool` | Reports whether the endpoint has a configured processing slot. | Collectors |
-| `processor(string $hookPoint): ResultProcessor\|callable\|string\|null` | Returns the stored processor reference unchanged, or `null`. | Collectors |
-| `clearProcessor(string $hookPoint): bool` | Removes the processing slot and reports whether one existed. | Collectors |
-| `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer): self` | Stores or replaces the same slot used by `setProcessor()` and returns the Hooks object. | Collectors; invalid renderer configuration is reported by `render()` |
-| `process(string $hookPoint, mixed ...$arguments): mixed` | Collects raw results, creates `ProcessingContext`, invokes the configured processor, and returns its output unchanged. | Collectors; `MissingProcessorException` when unset, `InvalidProcessorException` for an invalid class reference |
-| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects raw results and applies the supplied processor for this call only. It does not read or change persistent processor configuration. | `InvalidProcessorException` for an invalid resolved class |
-| `render(string $hookPoint, mixed ...$arguments): string` | Collects raw results, invokes the configured renderer, and requires string output. | Collectors; `MissingRendererException` when unset and `InvalidRendererException` for invalid class or non-string callable output |
-| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects raw results and applies the supplied renderer for this call only. It does not read or change persistent processor configuration. | `InvalidRendererException` for invalid configuration or non-string callable output |
+| [`setProcessor()`](#method-setprocessor) | Configure a collector processor. | `self`. |
+| [`hasProcessor()`](#method-hasprocessor) | Check processor configuration. | `bool`. |
+| [`processor()`](#method-processor) | Inspect the processor reference. | Processor, callable, class name, or `null`. |
+| [`clearProcessor()`](#method-clearprocessor) | Remove processor configuration. | `bool`. |
+| [`setRenderer()`](#method-setrenderer) | Configure a collector renderer. | `self`. |
+| [`process()`](#method-process) | Collect and process results. | Processor output. |
+| [`processWith()`](#method-processwith) | Process one call with a supplied processor. | Processor output. |
+| [`render()`](#method-render) | Collect and render results. | `string`. |
+| [`renderWith()`](#method-renderwith) | Render one call with a supplied renderer. | `string`. |
 
 `setProcessor()` and `setRenderer()` share one collector endpoint slot. `collect()` always bypasses that slot. See [processors](/docs/2.x/processors) and [renderers](/docs/2.x/renderers) for built-in behavior.
+
+<MethodReference name="setProcessor" signature={`public function setProcessor(
+    string $hookPoint,
+    ResultProcessor|callable|string $processor,
+): self`} applies="Collectors" returns="The same Hooks instance." exceptions="InvalidProcessorException when a resolved class does not implement ResultProcessor." persistent="Yes; replaces the processor/renderer slot for this collector.">
+  you want a persistent reduction for a collector.
+</MethodReference>
+<MethodReference name="processor" signature="public function processor(string $hookPoint): ResultProcessor|callable|string|null" applies="Collectors" returns="The configured reference, or null.">
+  you want to inspect the persistent processor reference.
+</MethodReference>
+<MethodReference name="process" signature={`public function process(
+    string $hookPoint,
+    mixed ...$arguments,
+): mixed`} applies="Collectors" returns="The configured processor output." empty="The processor receives an empty array." exceptions="MissingProcessorException when unset; InvalidProcessorException for an invalid class.">
+  you want to collect and reduce results using persistent configuration.
+</MethodReference>
+<MethodReference name="processWith" signature={`public function processWith(
+    string $hookPoint,
+    ResultProcessor|callable|string $processor,
+    mixed ...$arguments,
+): mixed`} applies="Collectors" returns="The supplied processor output." empty="The supplied processor receives an empty array." exceptions="InvalidProcessorException for an invalid class; custom exceptions propagate." persistent="No; the supplied processor is used for this call only.">
+  you need a one-off processing strategy.
+</MethodReference>
+<MethodReference name="setRenderer" signature={`public function setRenderer(
+    string $hookPoint,
+    Renderer|callable|string $renderer,
+): self`} applies="Collectors" returns="The same Hooks instance." exceptions="InvalidRendererException when configuration or resolved output is invalid." persistent="Yes; it replaces the shared collector slot.">
+  you want a persistent string renderer for a collector.
+</MethodReference>
+<MethodReference name="render" signature={`public function render(
+    string $hookPoint,
+    mixed ...$arguments,
+): string`} applies="Collectors" returns="The configured renderer's string output." empty="The renderer receives an empty array." exceptions="MissingRendererException when unset; InvalidRendererException for invalid configuration or non-string output.">
+  you want the configured renderer to produce a string.
+</MethodReference>
+<MethodReference name="renderWith" signature={`public function renderWith(
+    string $hookPoint,
+    Renderer|callable|string $renderer,
+    mixed ...$arguments,
+): string`} applies="Collectors" returns="The supplied renderer's string output." empty="The renderer receives an empty array." exceptions="InvalidRendererException for invalid configuration or non-string output." persistent="No; the supplied renderer is used for this call only.">
+  you need a one-off rendering strategy.
+</MethodReference>
 
 `processWith()` and `renderWith()` are one-off alternatives when the caller wants to choose the processing or rendering strategy at invocation time. They collect the endpoint once and leave any persistent slot untouched. See [one-off processing](/docs/2.x/processors/#one-off-processing) and [one-off rendering](/docs/2.x/renderers/#one-off-rendering) for examples.
 
@@ -296,11 +455,21 @@ These public methods provide diagnostics rather than dispatch:
 
 | Method | Purpose and return value | Applies to |
 | --- | --- | --- |
-| `debug(callable|null $callback): self` | Enables debug logging when a callable is supplied, disables it for `null`, and returns the same Hooks object. | Core registry diagnostics |
-| `setSourceFile(?string $path = null): self` | Stores an optional source-file label and returns the same Hooks object. | Core registry diagnostics |
-| `getSourceFile(): string` | Returns the configured source-file label, or `'Unknown'` when none was set. | Core registry diagnostics |
+| [`debug()`](#method-debug) | Enable or disable debug logging. | `self`. |
+| [`setSourceFile()`](#method-setsourcefile) | Store a source-file label. | `self`. |
+| [`getSourceFile()`](#method-getsourcefile) | Read the source-file label. | `string`. |
 
 These methods do not change action, filter, or collector behavior. The debug callback and source label are metadata, not a replacement for explicit arguments or application logging.
+
+<MethodReference name="debug" signature="public function debug(callable|null $callback): self" applies="Core diagnostics" returns="The same Hooks instance." persistent="Yes; it changes diagnostic configuration only.">
+  you need optional diagnostic logging while investigating registrations or dispatch.
+</MethodReference>
+<MethodReference name="setSourceFile" signature="public function setSourceFile(?string $path = null): self" applies="Core diagnostics" returns="The same Hooks instance." persistent="Yes; it stores a source label only.">
+  you want to attach a source-file label to diagnostic output.
+</MethodReference>
+<MethodReference name="getSourceFile" signature="public function getSourceFile(): string" applies="Core diagnostics" returns="The configured label, or `Unknown` when none was set.">
+  you need to read the current diagnostic source label.
+</MethodReference>
 
 ## Supporting public contracts
 
@@ -308,9 +477,9 @@ Processors, renderers, and class callbacks use these core contracts:
 
 | Contract | Method | What it is used for |
 | --- | --- | --- |
-| `Resolver` | `resolve(string $className): object` | Creates the object for a resolver-backed class callback, processor, or renderer. |
-| `ResultProcessor` | `process(array $results, ProcessingContext $context): mixed` | Reduces collector results to an application-defined value. |
-| `Renderer` | `process(array $results, ProcessingContext $context): string` | Reduces collector results specifically to a string. `Renderer` extends `ResultProcessor`. |
+| `Resolver` | `resolve()` | Creates an object for a resolver-backed callback, processor, or renderer. |
+| `ResultProcessor` | `process()` | Reduces collector results to an application-defined value. |
+| `Renderer` | `process()` | Reduces collector results specifically to a string. `Renderer` extends `ResultProcessor`. |
 
 The processor and renderer receive the raw list returned by `collect()` plus a `ProcessingContext`; they do not receive callbacks individually.
 
@@ -318,9 +487,9 @@ The processor and renderer receive the raw list returned by `collect()` plus a `
 
 | Method | Purpose and return value |
 | --- | --- |
-| `__construct(string $hookPoint, mixed ...$arguments)` | Stores the hook point and the arguments passed to `process()` or `render()`. |
-| `hookPoint(): string` | Returns the hook point currently being processed or rendered. |
-| `arguments(): array` | Returns the original invocation arguments as a list, in their original order. |
+| [`__construct()`](#method-processingcontext-construct) | Stores the hook point and invocation arguments. |
+| [`hookPoint()`](#method-processingcontext-hookpoint) | Returns the current hook point. |
+| [`arguments()`](#method-processingcontext-arguments) | Returns the original arguments in order. |
 
 The `ProcessingContext` constructor stores the original invocation arguments as a list. `RegistrationHandle` exposes the lifecycle methods above. `NativeResolver::resolve(string $className): object` creates a class with `new $className()`; the Laravel wrapper replaces this with container-backed resolution.
 
