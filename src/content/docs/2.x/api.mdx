@@ -9,7 +9,7 @@ import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Use this page when you need the exact public methods behind [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), and [collectors](/docs/2.x/collectors). It explains how to register, inspect, order, and remove callbacks, with signatures and return values in one place.
 
-The published signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta.1`. The one-off `processWith()` and `renderWith()` methods are also documented in their own sections as additions currently present on the `2.0` development branch; they are not yet part of that beta tag. Start with the guide for your hook type, then use this page when you need a complete method summary.
+The published signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta.2`. Start with the guide for your hook type, then use this page when you need a complete method summary.
 
 ## Registering listeners
 
@@ -261,13 +261,13 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 | `clearProcessor(string $hookPoint): bool` | Removes the processing slot and reports whether one existed. | Collectors |
 | `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer): self` | Stores or replaces the same slot used by `setProcessor()` and returns the Hooks object. | Collectors; invalid renderer configuration is reported by `render()` |
 | `process(string $hookPoint, mixed ...$arguments): mixed` | Collects raw results, creates `ProcessingContext`, invokes the configured processor, and returns its output unchanged. | Collectors; `MissingProcessorException` when unset, `InvalidProcessorException` for an invalid class reference |
-| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects raw results and applies the supplied processor for this call only. It does not read or change persistent processor configuration. | Current `2.0` branch; `InvalidProcessorException` for an invalid resolved class |
+| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects raw results and applies the supplied processor for this call only. It does not read or change persistent processor configuration. | `InvalidProcessorException` for an invalid resolved class |
 | `render(string $hookPoint, mixed ...$arguments): string` | Collects raw results, invokes the configured renderer, and requires string output. | Collectors; `MissingRendererException` when unset and `InvalidRendererException` for invalid class or non-string callable output |
-| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects raw results and applies the supplied renderer for this call only. It does not read or change persistent processor configuration. | Current `2.0` branch; `InvalidRendererException` for invalid configuration or non-string callable output |
+| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects raw results and applies the supplied renderer for this call only. It does not read or change persistent processor configuration. | `InvalidRendererException` for invalid configuration or non-string callable output |
 
 `setProcessor()` and `setRenderer()` share one collector endpoint slot. `collect()` always bypasses that slot. See [processors](/docs/2.x/processors) and [renderers](/docs/2.x/renderers) for built-in behavior.
 
-`processWith()` and `renderWith()` are one-off alternatives when the caller wants to choose the processing or rendering strategy at invocation time. They collect the endpoint once and leave any persistent slot untouched. See [one-off processing](/docs/2.x/processors/#one-off-processing) and [one-off rendering](/docs/2.x/renderers/#one-off-rendering) for examples. These two methods are currently on the `2.0` development branch and are not included in `v2.0.0-beta.1`.
+`processWith()` and `renderWith()` are one-off alternatives when the caller wants to choose the processing or rendering strategy at invocation time. They collect the endpoint once and leave any persistent slot untouched. See [one-off processing](/docs/2.x/processors/#one-off-processing) and [one-off rendering](/docs/2.x/renderers/#one-off-rendering) for examples.
 
 ### Inspection and removal
 

@@ -1,6 +1,6 @@
 # Production deployment
 
-This guide describes the manually triggered first deployment of the static Astro + Starlight site to `hooks.momagdi.com` on Apache/cPanel.
+This guide describes the manually triggered deployment of the live static Astro + Starlight site to `hooks.momagdi.com` on Apache/cPanel.
 
 The protected GitHub `production` environment and jailed SSH account are provisioned. The deployment workflow is intentionally manual and does not run on pushes. It uses cPanel user `hooksmomagdi` and fails closed unless `DEPLOY_PATH` is exactly `/home/hooksmomagdi/public_html`. No DNS, cPanel, SSL, or server changes are performed by GitHub Actions.
 
@@ -46,7 +46,7 @@ Never commit a private key. Store it only in the GitHub Actions secret configure
 
 ## 5. Configure the GitHub production secrets
 
-The future deployment workflow may use these repository or environment secrets:
+The deployment workflow uses these protected environment secrets:
 
 | Secret | Purpose |
 | --- | --- |
@@ -84,7 +84,7 @@ npm run preview:smoke
 
 ## 7. Deploy only the generated output
 
-The future deployment operation must copy the contents of `dist/` into the verified dedicated document root. Do not copy the repository, `node_modules/`, source Markdown, `.git/`, package lockfiles, private environment files, or development tooling to Apache.
+The deployment operation copies the contents of `dist/` into the verified dedicated document root. Do not copy the repository, `node_modules/`, source Markdown, `.git/`, package lockfiles, private environment files, or development tooling to Apache.
 
 The site has no server-side runtime requirement. Apache serves the generated HTML, CSS, JavaScript, images, sitemap, and robots file as static assets.
 
@@ -145,11 +145,11 @@ The first workflow does not use symlink switching because the exact cPanel atomi
 
 No `rm -rf` operation is used. The live tree is backed up before synchronization, and release/backup data is retained for manual rollback.
 
-Record the commit SHA, build timestamp, release directory, and rollback target for each approved deployment. Keep only the required number of old releases according to the hosting policy, and remove old releases only after confirming the active target.
+Record the commit SHA, build timestamp, release directory, and rollback target for each approved deployment. This first workflow does not remove old releases or backups automatically.
 
 ## 10. Post-deployment checks
 
-After a future approved deployment, verify:
+After each approved deployment, verify:
 
 - `https://hooks.momagdi.com/` loads the Hooks landing page;
 - `/docs/2.x/` and every planned documentation route return success;
@@ -161,7 +161,18 @@ After a future approved deployment, verify:
 
 The workflow performs the build, validation, upload, release extraction, backup, synchronization, and HTTPS smoke checks. It does not configure DNS, cPanel, SSL, or deployment secrets.
 
-## 11. Manual rollback procedure
+## 11. Inspecting disk usage and removing old data
+
+The workflow intentionally retains release and backup data. To review usage through the jailed SSH account, inspect the non-public deployment area and list its immediate directories:
+
+```bash
+du -sh "$HOME/.hooks-deploy"/* 2>/dev/null
+find "$HOME/.hooks-deploy/releases" "$HOME/.hooks-deploy/backups" -mindepth 1 -maxdepth 1 -type d -print
+```
+
+Before removing anything, confirm the active commit from the latest deployment record, confirm the live `public_html` content, and verify that the candidate directory is an older release or backup. Remove only one explicitly verified target using the cPanel file manager or a reviewed exact-path operation. Do not use broad wildcards, remove the active release, or delete the deployment area. Keep enough accepted rollback data to satisfy the operator retention policy.
+
+## 12. Manual rollback procedure
 
 Rollback is intentionally operator-driven. Do not run it until the failed deployment and target release have been identified.
 
@@ -177,7 +188,7 @@ If the backup is missing or corrupted, stop and obtain operator assistance. Neve
 
 ## Operator handoff checklist
 
-Before implementing a deployment workflow or provisioning the production target, obtain and record all of the following:
+Before changing the live deployment configuration, obtain and record all of the following:
 
 - [ ] Approved DNS target: the final `A` or `CNAME` destination for `hooks.momagdi.com`;
 - [ ] Exact dedicated cPanel document root: the verified absolute `DEPLOY_PATH`;
@@ -189,4 +200,4 @@ Before implementing a deployment workflow or provisioning the production target,
 - [ ] Rollback retention policy: how many previous releases remain available and for how long;
 - [ ] GitHub production environment approval settings: required reviewers, branch restrictions, secret scope, and manual approval policy.
 
-Do not add a production deployment workflow until the exact server path and supported atomic-deployment method are known. Do not guess any of these values.
+Do not add an automatic deployment trigger or destructive cleanup. Do not guess any of these values.

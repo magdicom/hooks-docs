@@ -7,7 +7,7 @@ description: Use Hooks through Laravel's container, facade, and helper.
 
 The optional `magdicom/laravel-hooks` package connects the framework-independent Hooks core to Laravel's service container. It gives you familiar Laravel access points and container-backed class resolution; the action, filter, collector, processor, and renderer APIs remain the core APIs.
 
-This page covers `magdicom/laravel-hooks` `v2.0.0-beta.2` with `magdicom/hooks` `v2.0.0-beta.1`. See the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set) for the package details behind these examples.
+This page covers `magdicom/laravel-hooks` `v2.0.0-beta.3` with `magdicom/hooks` `v2.0.0-beta.2`. See the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set) for the package details behind these examples.
 
 ## Core class and Laravel access
 

@@ -3,8 +3,8 @@ import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
 import SiteMetadata from '../components/SiteMetadata.astro'
 import '../styles/custom.css'
 
-const title = 'Hooks'
-const description = 'Named extension points for PHP with actions, filters, collectors, processors, and renderers.'
+const title = 'Hooks — Extension points for PHP'
+const description = 'Build extensible PHP applications without tightly coupling modules. Run actions, transform values, and collect contributions through clear, named extension points.'
 const phpActionExample = `use App\\Reports\\ExportOptions;
 use Magdicom\\Hooks;
 
@@ -58,7 +58,7 @@ const currentYear = new Date().getUTCFullYear()
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
-    <title>{title} — {description}</title>
+    <title>{title}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href="https://hooks.momagdi.com/" />
     <meta property="og:title" content={title} />
@@ -182,7 +182,7 @@ const currentYear = new Date().getUTCFullYear()
       <section class="closing-panel" aria-labelledby="next-title"><p class="eyebrow">Keep exploring</p><h2 id="next-title">Build your first extension point.</h2><div class="link-grid"><a href="/docs/2.x/concepts">Compare hook types <span>→</span></a><a href="/docs/2.x/processors">Process collector results <span>→</span></a><a href="/docs/2.x/api">Browse the API <span>→</span></a><a href="/docs/2.x/upgrade">Upgrade from 1.x <span>→</span></a><a href="https://github.com/magdicom/hooks">Core on GitHub <span>↗</span></a><a href="https://github.com/magdicom/laravel-hooks">Laravel package on GitHub <span>↗</span></a></div></section>
     </main>
 
-    <footer class="site-footer"><span>Hooks · composable extension points for PHP</span><span>© 2022–{currentYear} <a href="https://momagdi.com" target="_blank" rel="noopener noreferrer">MoMagdi</a>. Hooks is released under the <a href="https://github.com/magdicom/hooks/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer">MIT License</a>.</span><a href="https://github.com/magdicom/hooks/releases">Releases</a></footer>
+    <footer class="site-footer"><span>Hooks — Extension points for PHP</span><span>© 2022–{currentYear} <a href="https://momagdi.com" target="_blank" rel="noopener noreferrer">Mohamed Magdi</a>. Hooks is released under the <a href="https://github.com/magdicom/hooks/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer">MIT License</a>.</span><a href="https://github.com/magdicom/hooks/releases">Releases</a></footer>
   </body>
 </html>
 

@@ -8,7 +8,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Hooks',
-      description: 'Named extension points for PHP with actions, filters, collectors, processors, and renderers.',
+      description: 'Build extensible PHP applications without tightly coupling modules. Run actions, transform values, and collect contributions through clear, named extension points.',
       disable404Route: true,
       logo: {
         src: './src/assets/hooks-mark.svg',

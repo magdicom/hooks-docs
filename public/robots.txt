@@ -1,4 +1,3 @@
-# The production domain is not deployed yet. Revisit this policy when the
-# first public deployment is approved.
 User-agent: *
-Disallow: /
+Allow: /
+Sitemap: https://hooks.momagdi.com/sitemap-index.xml

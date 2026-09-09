@@ -1,6 +1,6 @@
 # Released Source Audit
 
-This document is the source-of-truth record for the first documentation milestone. It was prepared before writing site content and is intentionally tied to immutable release commits.
+This document is the source-of-truth record for the current public documentation. It is tied to immutable release commits and must be updated whenever a documented package release changes the public API.
 
 ## Audit scope and authority
 
@@ -8,8 +8,8 @@ Inspected repositories:
 
 | Package | Released tag | Commit | Repository |
 | --- | --- | --- | --- |
-| `magdicom/hooks` | `v2.0.0-beta.1` | `cc0b47cce38604e2cd23c50cc528bdd750e61ef6` | [source](https://github.com/magdicom/hooks/tree/cc0b47cce38604e2cd23c50cc528bdd750e61ef6) |
-| `magdicom/laravel-hooks` | `v2.0.0-beta.2` | `37ea485547724b0c354bcf7827aa7f37d637d8a6` | [source](https://github.com/magdicom/laravel-hooks/tree/37ea485547724b0c354bcf7827aa7f37d637d8a6) |
+| `magdicom/hooks` | `v2.0.0-beta.2` | `a3e10dc8674968ea4062b924706e6ea7ed83b876` | [source](https://github.com/magdicom/hooks/tree/a3e10dc8674968ea4062b924706e6ea7ed83b876) |
+| `magdicom/laravel-hooks` | `v2.0.0-beta.3` | `5003de56228c53934548a6b704f4d51ece4b9472` | [source](https://github.com/magdicom/laravel-hooks/tree/5003de56228c53934548a6b704f4d51ece4b9472) |
 
 Inspected material for both tags:
 
@@ -26,7 +26,7 @@ When prose, README guidance, tests, and implementation differ, the released impl
 
 `magdicom/hooks` requires PHP `^8.2`. It has no runtime dependencies. Its PSR-4 namespace is `Magdicom\\` mapped to `src/`.
 
-Source: [`composer.json`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/composer.json).
+Source: [`composer.json`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/composer.json).
 
 Released beta installation command:
 
@@ -40,11 +40,11 @@ composer require magdicom/hooks:"^2.0@beta"
 
 - PHP `^8.2`;
 - Laravel contracts/support `^12.0 || ^13.0`;
-- `magdicom/hooks` `^2.0.0-beta.1`.
+- `magdicom/hooks` `^2.0.0-beta.2`.
 
 Its runtime namespace is `Magdicom\\LaravelHooks\\`, and `src/helpers.php` is autoloaded as a file. Composer metadata advertises `ServiceProvider` and the `Hooks` facade alias for Laravel auto-discovery.
 
-Source: [`composer.json`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/composer.json).
+Source: [`composer.json`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/composer.json).
 
 Released beta installation command:
 
@@ -56,7 +56,7 @@ Both prerelease packages are explicit in the consumer command because the root p
 
 ## Core public API truth set
 
-The complete public surface below is derived from [`src/Hooks.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php), [`src/RegistrationHandle.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/RegistrationHandle.php), and the supporting contracts.
+The complete public surface below is derived from [`src/Hooks.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php), [`src/RegistrationHandle.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/RegistrationHandle.php), and the supporting contracts.
 
 ### Construction and hook dispatch
 
@@ -70,7 +70,7 @@ The complete public surface below is derived from [`src/Hooks.php`](https://gith
 | `applyFilters(string $hookPoint, mixed $value, mixed ...$arguments): mixed` | Passes the current value as the first callback argument, then explicit arguments, sequentially. | Filter |
 | `collect(string $hookPoint, mixed ...$arguments): array` | Returns one raw result per collector listener in dispatch order; it never flattens or processes results. | Collector |
 
-Source: [`Hooks.php#L53-L126`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L53-L126). Tests: [`EmptyDispatchTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/EmptyDispatchTest.php), [`ExecutionSemanticsTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/ExecutionSemanticsTest.php), and [`InvocationArgumentsTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/InvocationArgumentsTest.php).
+Source: [`Hooks.php#L53-L126`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L53-L126). Tests: [`EmptyDispatchTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/EmptyDispatchTest.php), [`ExecutionSemanticsTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/ExecutionSemanticsTest.php), and [`InvocationArgumentsTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/InvocationArgumentsTest.php).
 
 Empty dispatch behavior:
 
@@ -92,7 +92,7 @@ Empty dispatch behavior:
 
 Processors and renderers apply to collectors only. `collect()` bypasses the shared slot even when a processor or renderer is configured.
 
-Sources: [`Hooks.php#L128-L200`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L128-L200), [`ResultProcessor.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/ResultProcessor.php), [`Renderer.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Renderer.php), [`ProcessingContext.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/ProcessingContext.php), and [`ProcessingContractsTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/ProcessingContractsTest.php).
+Sources: [`Hooks.php#L128-L200`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L128-L200), [`ResultProcessor.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/ResultProcessor.php), [`Renderer.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Renderer.php), [`ProcessingContext.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/ProcessingContext.php), and [`ProcessingContractsTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/ProcessingContractsTest.php).
 
 `ProcessingContext` exposes only:
 
@@ -123,7 +123,7 @@ Each registration returns a `RegistrationHandle` with:
 
 Callback-based matching compares callback identity and priority. Handle removal is registration-id based, so it remains exact even when equivalent callbacks or duplicate callbacks exist. Equal priorities retain registration order because registration ids are monotonic.
 
-Sources: [`Hooks.php#L202-L374`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L202-L374), [`Hooks.php#L576-L655`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L576-L655), [`RegistrationHandle.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/RegistrationHandle.php), and [`RegistrationHandleTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/RegistrationHandleTest.php).
+Sources: [`Hooks.php#L202-L374`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L202-L374), [`Hooks.php#L576-L655`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L576-L655), [`RegistrationHandle.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/RegistrationHandle.php), and [`RegistrationHandleTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/RegistrationHandleTest.php).
 
 ### Ordering and mutation semantics
 
@@ -134,7 +134,7 @@ Sources: [`Hooks.php#L202-L374`](https://github.com/magdicom/hooks/blob/cc0b47cc
 - Nested `collect()`, `process()`, and `render()` calls remain isolated.
 - Exceptions bubble to the caller; subsequent invocations remain usable.
 
-Sources: [`Hooks.php#L694-L741`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L694-L741), [`DispatchMutationTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/DispatchMutationTest.php), and [`NestedProcessingTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/NestedProcessingTest.php).
+Sources: [`Hooks.php#L694-L741`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L694-L741), [`DispatchMutationTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/DispatchMutationTest.php), and [`NestedProcessingTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/NestedProcessingTest.php).
 
 ### Callback and resolver behavior
 
@@ -149,7 +149,7 @@ Core resolver contracts:
 
 Class-name processors are resolved and must implement `ResultProcessor`, otherwise `InvalidProcessorException` is thrown. Class-name renderers are resolved and must implement `Renderer`; a renderer slot containing a non-renderer processor is invalid. Callable renderers are checked for string output and throw `InvalidRendererException` for non-string results.
 
-Sources: [`Hooks.php#L380-L457`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Hooks.php#L380-L457), [`Resolver.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Resolver.php), [`NativeResolver.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/NativeResolver.php), [`ResolverTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/ResolverTest.php), and [`CallbackTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/CallbackTest.php).
+Sources: [`Hooks.php#L380-L457`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Hooks.php#L380-L457), [`Resolver.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Resolver.php), [`NativeResolver.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/NativeResolver.php), [`ResolverTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/ResolverTest.php), and [`CallbackTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/CallbackTest.php).
 
 ## Released built-in processors and renderer
 
@@ -166,22 +166,18 @@ All built-ins implement the `ResultProcessor` or `Renderer` contract and receive
 | `FlattenProcessor` | Every top-level entry must be an array | Empty result produces `[]`; flattens values by configured depth (`-1` unlimited, `0` top-level only) and discards array keys | Constructor rejects depth below `-1`; non-array entries throw `UnexpectedValueException` |
 | `ConcatenateRenderer` | Any values supported by its stringification rules | Empty result produces `''`; joins rendered entries with the configured separator | `UnexpectedValueException` for unsupported values; accepts `null`, strings, scalars, and `Stringable` |
 
-Sources: [`src/Processor`](https://github.com/magdicom/hooks/tree/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/src/Processor), [`BooleanProcessorsTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/BooleanProcessorsTest.php), [`FlattenProcessorTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/FlattenProcessorTest.php), [`MergeProcessorTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/MergeProcessorTest.php), [`ProcessorDispatchTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/ProcessorDispatchTest.php), and [`RendererDispatchTest.php`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/tests/RendererDispatchTest.php).
+Sources: [`src/Processors`](https://github.com/magdicom/hooks/tree/a3e10dc8674968ea4062b924706e6ea7ed83b876/src/Processors), [`BooleanProcessorsTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/BooleanProcessorsTest.php), [`FlattenProcessorTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/FlattenProcessorTest.php), [`MergeProcessorTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/MergeProcessorTest.php), [`ProcessorDispatchTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/ProcessorDispatchTest.php), and [`RendererDispatchTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/RendererDispatchTest.php).
 
-## Namespace note for the 2.0 branch
+## One-off processing and rendering
 
-The immutable `magdicom/hooks` `v2.0.0-beta.1` tag recorded above stores its built-ins under the singular `Magdicom\\Processor` namespace. The current `2.0` branch inspected for this documentation task has moved those classes to `Magdicom\\Processors`, including `ConcatenateRenderer`. The beta installation commands and release claims in this repository remain tied to the immutable tags above; do not present branch-only API changes as beta-tag behavior until a corresponding release is published.
-
-## Current 2.0 branch additions
-
-The current `2.0` branch was rechecked at commit `76981aa` (`Add one-off collector finalization`) after the immutable beta audit. Its public `Magdicom\\Hooks` surface adds:
+The audited `magdicom/hooks` `v2.0.0-beta.2` release includes the one-off finalization methods on `Magdicom\\Hooks`:
 
 | Method | Behavior | Verification |
 | --- | --- | --- |
-| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects the endpoint once and applies the supplied processor without reading or changing persistent processor configuration. | `tests/OneOffProcessingTest.php` and `tests/ArchitectureTest.php` |
-| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects the endpoint once and applies the supplied renderer without reading or changing persistent processor configuration. | `tests/OneOffProcessingTest.php` and `tests/ArchitectureTest.php` |
+| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects the endpoint once and applies the supplied processor without reading or changing persistent processor configuration. | [`OneOffProcessingTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/OneOffProcessingTest.php) |
+| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects the endpoint once and applies the supplied renderer without reading or changing persistent processor configuration. | [`OneOffProcessingTest.php`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/tests/OneOffProcessingTest.php) |
 
-These methods are documented on the site with an explicit development-branch status note. They must not be described as part of `v2.0.0-beta.1` until the package publishes a tag containing them.
+Both methods are released APIs in beta.2. Use them when a call needs a temporary processor or renderer; use `setProcessor()` or `setRenderer()` when the choice should remain configured for later calls.
 
 ## Laravel integration truth set
 
@@ -198,7 +194,7 @@ The following access paths resolve the same application singleton:
 
 The global helper has signature `hooks(): Magdicom\\Hooks`. Passing arguments throws `InvalidArgumentException`; invocation arguments belong on `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`.
 
-Sources: [`ServiceProvider.php`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/src/ServiceProvider.php), [`helpers.php`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/src/helpers.php), [`Facades/Hooks.php`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/src/Facades/Hooks.php), and [`ContainerIntegrationTest.php`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/tests/ContainerIntegrationTest.php).
+Sources: [`ServiceProvider.php`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/src/ServiceProvider.php), [`helpers.php`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/src/helpers.php), [`Facades/Hooks.php`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/src/Facades/Hooks.php), and [`ContainerIntegrationTest.php`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/tests/ContainerIntegrationTest.php).
 
 ### Laravel resolver
 
@@ -210,7 +206,7 @@ Applications/packages may rebind `Magdicom\\Resolver` before `Magdicom\\Hooks` i
 
 The registry is application-singleton state. Runtime registrations remain in the singleton until the application instance is refreshed or registrations are explicitly removed. Documentation must recommend stable boot-time registration and deliberate cleanup/isolation for Octane workers, queue workers, daemons, and similar long-running processes.
 
-Source: [`README.md`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/README.md#singleton-lifecycle) and [`AGENTS.md`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/AGENTS.md#documentation).
+Source: [`README.md`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/README.md#singleton-lifecycle) and [`AGENTS.md`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/AGENTS.md#documentation).
 
 ## Migration truth set
 
@@ -229,7 +225,7 @@ The released upgrade guides agree on these mappings:
 
 Removed version-1 APIs explicitly named by the released guides include `register()`, `all()`, `first()`, `last()`, `toArray()`, `toString()`, `__toString()`, `setParameter()`, `setParam()`, `setParameters()`, and `setParams()`.
 
-Sources: core [`UPGRADE.md`](https://github.com/magdicom/hooks/blob/cc0b47cce38604e2cd23c50cc528bdd750e61ef6/UPGRADE.md) and Laravel [`UPGRADE.md`](https://github.com/magdicom/laravel-hooks/blob/37ea485547724b0c354bcf7827aa7f37d637d8a6/UPGRADE.md).
+Sources: core [`UPGRADE.md`](https://github.com/magdicom/hooks/blob/a3e10dc8674968ea4062b924706e6ea7ed83b876/UPGRADE.md) and Laravel [`UPGRADE.md`](https://github.com/magdicom/laravel-hooks/blob/5003de56228c53934548a6b704f4d51ece4b9472/UPGRADE.md).
 
 ## Discrepancies and documentation cautions
 

@@ -12,7 +12,6 @@ concurrency:
 
 env:
   DEPLOY_URL: https://hooks.momagdi.com
-  KEEP_RELEASES: "0"
 
 jobs:
   deploy:
@@ -219,6 +218,7 @@ jobs:
           REMOTE_SCRIPT
 
       - name: Smoke test deployed HTTPS site
+        id: smoke
         shell: bash
         env:
           DEPLOY_URL: ${{ env.DEPLOY_URL }}
@@ -252,11 +252,8 @@ jobs:
             echo "- Deployed commit: \\`${GITHUB_SHA:0:7}\\`"
             echo "- Deployment URL: ${DEPLOY_URL}"
             echo "- Validation: completed before packaging"
-            if [ "${{ steps.deploy.outcome }}" = success ]; then
-              echo "- Deployment: synchronized and HTTPS smoke-tested"
-            else
-              echo "- Deployment: failed before successful completion"
-            fi
+            echo "- Synchronization: ${{ steps.deploy.outcome }}"
+            echo "- HTTPS smoke tests: ${{ steps.smoke.outcome }}"
             echo "- Rollback release identifier: \\`${GITHUB_SHA}\\` (retained under the protected deployment area)"
             echo "- Old releases are retained; automatic cleanup is disabled"
           } >> "$GITHUB_STEP_SUMMARY"
