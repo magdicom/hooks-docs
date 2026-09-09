@@ -30,12 +30,16 @@ for (const { file, text } of markdown) {
   if (/planned for the next documentation implementation task/i.test(text)) {
     fail(`${name}: placeholder documentation text remains`)
   }
-  if (text.includes('<Tabs')) {
-    for (const match of text.matchAll(/<Tabs\b([^>]*)>([\s\S]*?)<\/Tabs>/g)) {
-      if (!match[1].includes('syncKey="framework"')) fail(`${name}: tab group must use syncKey="framework"`)
-      const labels = [...match[2].matchAll(/<TabItem\s+label="([^"]+)"/g)].map((tab) => tab[1])
-      if (labels.length !== 2 || labels[0] !== 'PHP' || labels[1] !== 'Laravel') fail(`${name}: tab group must use exactly PHP then Laravel labels`)
-    }
+}
+
+const tabSources = [...markdown, { file: join(root, 'src', 'pages', 'index.astro'), text: readFileSync(join(root, 'src', 'pages', 'index.astro'), 'utf8') }]
+for (const { file, text } of tabSources) {
+  const name = relative(root, file)
+  if (!text.includes('<Tabs')) continue
+  for (const match of text.matchAll(/<Tabs\b([^>]*)>([\s\S]*?)<\/Tabs>/g)) {
+    if (!match[1].includes('syncKey="framework"')) fail(`${name}: tab group must use syncKey="framework"`)
+    const labels = [...match[2].matchAll(/<TabItem\s+label="([^"]+)"/g)].map((tab) => tab[1])
+    if (labels.length !== 2 || labels[0] !== 'PHP' || labels[1] !== 'Laravel') fail(`${name}: tab group must use exactly PHP then Laravel labels`)
   }
 }
 
