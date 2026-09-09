@@ -114,7 +114,7 @@ const laravelInstallCommand = 'composer require magdicom/laravel-hooks:"^2.0@bet
       </section>
 
       <section class="section example-section" aria-labelledby="core-example-title">
-        <div class="example-copy"><p class="eyebrow">Actions · framework-independent core</p><h2 id="core-example-title">Open a workflow without adding dependencies.</h2><p>An exporter can expose a synchronous configuration point for modules that need to add columns or other options. The workflow stays in one place, and each callback runs immediately.</p><a class="text-link" href="/docs/2.x/actions">Learn about actions →</a></div>
+        <div class="example-copy"><p class="eyebrow">Actions · framework-independent core</p><h2 id="core-example-title">Open a workflow without adding dependencies.</h2><p>An exporter can expose a synchronous configuration point for modules that need to add columns or other options. Unlike a domain event, this hook stays inside the current workflow, so each callback can adjust this export request immediately.</p><a class="text-link" href="/docs/2.x/actions">Learn about actions →</a></div>
         <div class="home-example-tabs">
           <Tabs syncKey="framework">
             <TabItem label="PHP"><Code code={phpActionExample} lang="php" /></TabItem>
