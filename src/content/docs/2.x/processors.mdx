@@ -22,6 +22,7 @@ The processor methods have distinct responsibilities:
 | `processor(string $hookPoint)` | Reading the configured processor reference for inspection or replacement logic. | The stored processor, callable, class name, or `null`. |
 | `clearProcessor(string $hookPoint)` | Removing the configured processor slot. | `true` when a slot existed; otherwise `false`. |
 | `process(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured processor. | The processor's output; throws `MissingProcessorException` when no processor is configured. |
+| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments)` | Applying a processor for one call without configuring the hook point. | The processor's output; does not read or change the persistent processor slot. |
 
 Processors apply only to collectors. `collect()` still returns the raw list and bypasses this configuration.
 
@@ -61,6 +62,45 @@ Processors apply only to collectors. `collect()` still returns the raw list and 
 </Tabs>
 
 Calling `collect('customer.primary_email', $customer)` on the same endpoint still returns one raw result per listener. It bypasses processor and renderer configuration. Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
+
+### One-off processing
+
+Use `processWith()` when the caller needs a different reduction for one invocation. It accepts the same processor instance, callable, or class name as `setProcessor()`, collects the listeners once, and passes the results and `ProcessingContext` to that processor. The supplied processor is not stored, and an existing configured processor remains unchanged.
+
+This is useful when the same collector can be viewed in more than one way. For example, an endpoint may normally use a configured processor, while an export or fallback path needs the first available value for one call:
+
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
+
+    ```php
+    use Magdicom\Hooks;
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    $hooks = new Hooks();
+    $hooks->addCollector('customer.email_candidates', static fn (): ?string => null);
+    $hooks->addCollector('customer.email_candidates', static fn (): ?string => 'billing@example.test');
+
+    $email = $hooks->processWith('customer.email_candidates', FirstNonNullProcessor::class);
+    // 'billing@example.test'
+    ```
+
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    use Magdicom\Processors\FirstNonNullProcessor;
+
+    hooks()->addCollector('customer.email_candidates', static fn (): ?string => null);
+    hooks()->addCollector('customer.email_candidates', static fn (): ?string => 'billing@example.test');
+
+    $email = hooks()->processWith('customer.email_candidates', FirstNonNullProcessor::class);
+    // 'billing@example.test'
+    ```
+
+  </TabItem>
+</Tabs>
+
+`processWith()` is available on the current `2.0` development branch and is covered by the core package's one-off processing tests. It is not part of the published `v2.0.0-beta.1` tag yet; check the package release before using it in a beta-only application.
 
 ## Built-in processors
 

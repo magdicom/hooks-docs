@@ -172,6 +172,17 @@ Sources: [`src/Processor`](https://github.com/magdicom/hooks/tree/cc0b47cce38604
 
 The immutable `magdicom/hooks` `v2.0.0-beta.1` tag recorded above stores its built-ins under the singular `Magdicom\\Processor` namespace. The current `2.0` branch inspected for this documentation task has moved those classes to `Magdicom\\Processors`, including `ConcatenateRenderer`. The beta installation commands and release claims in this repository remain tied to the immutable tags above; do not present branch-only API changes as beta-tag behavior until a corresponding release is published.
 
+## Current 2.0 branch additions
+
+The current `2.0` branch was rechecked at commit `76981aa` (`Add one-off collector finalization`) after the immutable beta audit. Its public `Magdicom\\Hooks` surface adds:
+
+| Method | Behavior | Verification |
+| --- | --- | --- |
+| `processWith(string $hookPoint, ResultProcessor\|callable\|string $processor, mixed ...$arguments): mixed` | Collects the endpoint once and applies the supplied processor without reading or changing persistent processor configuration. | `tests/OneOffProcessingTest.php` and `tests/ArchitectureTest.php` |
+| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments): string` | Collects the endpoint once and applies the supplied renderer without reading or changing persistent processor configuration. | `tests/OneOffProcessingTest.php` and `tests/ArchitectureTest.php` |
+
+These methods are documented on the site with an explicit development-branch status note. They must not be described as part of `v2.0.0-beta.1` until the package publishes a tag containing them.
+
 ## Laravel integration truth set
 
 ### Service provider and access paths

@@ -19,6 +19,7 @@ The renderer methods have distinct responsibilities:
 | --- | --- | --- |
 | `setRenderer(string $hookPoint, Renderer\|callable\|string $renderer)` | Choosing the formatter for a collector point. A class name is resolved when rendering runs. | The same `Hooks` instance. The renderer occupies the collector's processing slot. |
 | `render(string $hookPoint, mixed ...$arguments)` | Collecting results and passing them with `ProcessingContext` to the configured renderer. | A `string`; throws `MissingRendererException` when unset and `InvalidRendererException` for invalid output or configuration. |
+| `renderWith(string $hookPoint, Renderer\|callable\|string $renderer, mixed ...$arguments)` | Applying a renderer for one call without configuring the hook point. | A `string`; does not read or change the persistent processor slot. |
 
 Renderers apply only to collectors. Use `collect()` for raw results and `process()` for non-string reductions.
 
@@ -70,6 +71,51 @@ Renderers apply only to collectors. Use `collect()` for raw results and `process
 `collect()` remains the raw operation even when a renderer is configured. `process()` and `render()` use the same collector result slot, so configure the endpoint for the operation your caller needs.
 
 Without a configured renderer, `render()` throws `MissingRendererException`. A class-name renderer must resolve to `Renderer`; an invalid implementation raises `InvalidRendererException`. A callable renderer that returns a non-string raises the same exception.
+
+## One-off rendering
+
+Use `renderWith()` when the output format is a choice made by the current call rather than a permanent setting for the collector. It collects the raw results once, passes them with `ProcessingContext` to the supplied renderer, and requires a string result. The renderer can be an instance, callable, or resolver-backed class name. It does not replace an existing renderer or processor configured with `setRenderer()` or `setProcessor()`.
+
+For example, the same collected labels can use a separator selected by the current presentation:
+
+<Tabs syncKey="framework">
+  <TabItem label="PHP">
+
+    ```php
+    use Magdicom\Hooks;
+    use Magdicom\Processors\ConcatenateRenderer;
+
+    $hooks = new Hooks();
+    $hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
+    $hooks->addCollector('navigation.labels', static fn (): string => 'Billing');
+
+    $label = $hooks->renderWith(
+        'navigation.labels',
+        new ConcatenateRenderer(' / '),
+    );
+    // 'Hooks / Billing'
+    ```
+
+  </TabItem>
+  <TabItem label="Laravel">
+
+    ```php
+    use Magdicom\Processors\ConcatenateRenderer;
+
+    hooks()->addCollector('navigation.labels', static fn (): string => 'Hooks');
+    hooks()->addCollector('navigation.labels', static fn (): string => 'Billing');
+
+    $label = hooks()->renderWith(
+        'navigation.labels',
+        new ConcatenateRenderer(' / '),
+    );
+    // 'Hooks / Billing'
+    ```
+
+  </TabItem>
+</Tabs>
+
+`renderWith()` is available on the current `2.0` development branch and is covered by the core package's one-off rendering tests. It is not part of the published `v2.0.0-beta.1` tag yet; check the package release before using it in a beta-only application.
 
 ## `ConcatenateRenderer`
 

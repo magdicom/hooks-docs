@@ -89,7 +89,7 @@ if (sidebarPositions.some((position) => position < 0) || sidebarPositions[0] > s
 const phpBlocks = markdown.flatMap(({ file, text }) => [...text.matchAll(/^[ \t]*```php\n([\s\S]*?)^[ \t]*```/gm)].map((match) => ({ file, code: match[1] })))
 const allowedMethods = new Set([
   'addAction', 'addFilter', 'addCollector', 'doAction', 'applyFilters', 'collect', 'setProcessor',
-  'setRenderer', 'process', 'render', 'removeAction', 'removeFilter', 'removeCollector', 'removeAll',
+  'setRenderer', 'process', 'processWith', 'render', 'renderWith', 'removeAction', 'removeFilter', 'removeCollector', 'removeAll',
   'removeAllActions', 'removeAllFilters', 'removeAllCollectors', 'has', 'hasAction', 'hasFilter',
   'hasCollector', 'count', 'listeners', 'actions', 'filters', 'collectors', 'debug', 'setSourceFile',
   'getSourceFile', 'id', 'hookPoint', 'type', 'priority', 'remove', 'belongsTo',
