@@ -18,7 +18,7 @@ const structuredData = {
       '@type': 'SoftwareSourceCode',
       '@id': softwareId,
       name: 'Hooks',
-      description: 'Flexible hooks for modern PHP applications.',
+      description: 'Named extension points for PHP with actions, filters, collectors, processors, and renderers.',
       url: 'https://hooks.momagdi.com',
       codeRepository: 'https://github.com/magdicom/hooks',
       programmingLanguage: 'PHP',
@@ -46,4 +46,5 @@ const serializedStructuredData = JSON.stringify(structuredData).replace(/[<>&]/g
 ---
 
 <meta name="author" content={authorName} />
+<meta property="og:image" content="https://hooks.momagdi.com/hooks-mark.svg" />
 <script type="application/ld+json" is:inline set:html={serializedStructuredData}></script>
