@@ -3,28 +3,25 @@ import { Code, TabItem, Tabs } from '@astrojs/starlight/components'
 
 const title = 'Hooks'
 const description = 'Flexible hooks for modern PHP applications.'
-const phpActionExample = `use App\\Billing\\ReceiptMailer;
+const phpActionExample = `use App\\Reports\\ExportOptions;
 use Magdicom\\Hooks;
 
 $hooks = new Hooks();
-$receiptMailer = new ReceiptMailer();
-$invoiceId = 42;
-$listener = static function (int $invoiceId) use ($receiptMailer): void {
-    $receiptMailer->sendForInvoice($invoiceId);
-};
-
-$hooks->addAction('invoice.paid', $listener);
-$hooks->doAction('invoice.paid', $invoiceId);`
-const laravelActionExample = `use App\\Mail\\InvoiceReceipt;
-use App\\Models\\Invoice;
-use Illuminate\\Support\\Facades\\Mail;
-
-$invoice = Invoice::findOrFail(42);
-hooks()->addAction('invoice.paid', static function (Invoice $invoice): void {
-    Mail::to($invoice->customer)->send(new InvoiceReceipt($invoice));
+$options = new ExportOptions('sales');
+$hooks->addAction('report.export.configure', static function (ExportOptions $options): void {
+    $options->includeColumn('customer_region');
 });
 
-hooks()->doAction('invoice.paid', $invoice);`
+$hooks->doAction('report.export.configure', $options);`
+const laravelActionExample = `use App\\Reports\\ExportOptions;
+
+// The exporter owns this object for the current request.
+$options = new ExportOptions('sales');
+hooks()->addAction('report.export.configure', static function (ExportOptions $options): void {
+    $options->includeColumn('customer_region');
+});
+
+hooks()->doAction('report.export.configure', $options);`
 const phpFilterExample = `use Magdicom\\Hooks;
 
 $hooks = new Hooks();
@@ -117,7 +114,7 @@ const laravelInstallCommand = 'composer require magdicom/laravel-hooks:"^2.0@bet
       </section>
 
       <section class="section example-section" aria-labelledby="core-example-title">
-        <div class="example-copy"><p class="eyebrow">Actions · framework-independent core</p><h2 id="core-example-title">Give your code a place to plug in.</h2><p>The core package works in any PHP application. Name a hook point, register a callback, and invoke it with the arguments your application already has.</p><a class="text-link" href="/docs/2.x/actions">Learn about actions →</a></div>
+        <div class="example-copy"><p class="eyebrow">Actions · framework-independent core</p><h2 id="core-example-title">Open a workflow without adding dependencies.</h2><p>An exporter can expose a synchronous configuration point for modules that need to add columns or other options. The workflow stays in one place, and each callback runs immediately.</p><a class="text-link" href="/docs/2.x/actions">Learn about actions →</a></div>
         <div class="home-example-tabs">
           <Tabs syncKey="framework">
             <TabItem label="PHP"><Code code={phpActionExample} lang="php" /></TabItem>
