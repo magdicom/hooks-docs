@@ -5,8 +5,6 @@ description: Learn how to add clear, synchronous extension points to a PHP appli
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Hooks 2.x Beta
-
 Hooks lets your application expose named places where other code can participate without changing the original class. These places are called hook points. A hook point can run side effects, transform a value, or gather contributions from several callbacks.
 
 The core package is framework-independent and synchronous. Use a `Magdicom\Hooks` instance in a plain PHP application; the core package does not add global helper or static state. If you use Laravel, the optional integration adds auto-discovery, container-backed resolution, a facade, and the `hooks()` helper. The helper and facade resolve the same Laravel singleton, while the underlying model stays the same: callbacks run in a clear order during the current call.
@@ -29,8 +27,8 @@ The hook model stays the same in both environments. The PHP version creates the 
     };
     $invoiceId = 42;
 
-    $hooks->addAction('invoice.paid', $listener);
-    $hooks->doAction('invoice.paid', $invoiceId);
+    $hooks->addAction('InvoicePaid', $listener);
+    $hooks->doAction('InvoicePaid', $invoiceId);
     ```
 
   </TabItem>
@@ -38,11 +36,11 @@ The hook model stays the same in both environments. The PHP version creates the 
 
     ```php
     $invoiceId = 42;
-    hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
+    hooks()->addAction('InvoicePaid', static function (int $invoiceId): void {
         logger()->info('Invoice paid.', ['invoice_id' => $invoiceId]);
     });
 
-    hooks()->doAction('invoice.paid', $invoiceId);
+    hooks()->doAction('InvoicePaid', $invoiceId);
     ```
 
   </TabItem>

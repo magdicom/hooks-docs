@@ -236,8 +236,7 @@ The following are documentation cautions rather than implementation defects:
 1. The core README describes the core package as framework-independent and its deferred-integration section says framework-specific integrations are outside the core branch. The Laravel wrapper is a separate package and must be documented separately, not as a core dependency or core feature.
 2. `setProcessor()` and `setRenderer()` share one untyped collector slot. A custom processor/renderer may be narrower than `list<mixed>`, so endpoint-to-processor result compatibility remains the consumer's responsibility.
 3. A callable string such as a named function or static method string is executed as a callable before a non-callable string is treated as a resolver-backed class name.
-4. The core source exposes `debug()`, `setSourceFile()`, and `getSourceFile()`. These are released public methods, but they are secondary operational APIs and should not be confused with dispatch or registration behavior.
-5. The Laravel wrapper's requirement is Laravel 12 or 13 only. Laravel 9, 10, and 11 must not appear in installation guidance for this beta tag.
+4. The Laravel wrapper's requirement is Laravel 12 or 13 only. Laravel 9, 10, and 11 must not appear in installation guidance for this beta tag.
 
 ## Audit completion checklist
 

@@ -5,9 +5,7 @@ description: Choose the right Hooks type for side effects, value changes, or col
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Concepts
-
-# Choose a hook type
+## Choose a hook type
 
 Start with what the caller needs back. Actions do something, filters return one changed value, and collectors return every callback's contribution. All three are synchronous and ordered.
 
@@ -30,22 +28,22 @@ An action callback receives the arguments passed to `doAction()`. Its return val
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+    $hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
         // Notify a synchronous integration.
     });
 
-    $hooks->doAction('invoice.paid', 42);
+    $hooks->doAction('InvoicePaid', 42);
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
+    hooks()->addAction('InvoicePaid', static function (int $invoiceId): void {
         // Notify a synchronous integration.
     });
 
-    hooks()->doAction('invoice.paid', 42);
+    hooks()->doAction('InvoicePaid', 42);
     ```
 
   </TabItem>
@@ -64,22 +62,22 @@ The current value is always the first callback argument. Any additional argument
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addFilter('email.subject', static function (string $title, string $locale): string {
+    $hooks->addFilter('EmailSubject', static function (string $title, string $locale): string {
         return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
     });
 
-    $displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
+    $displayTitle = $hooks->applyFilters('EmailSubject', 'Release notes', 'en');
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addFilter('email.subject', static function (string $title, string $locale): string {
+    hooks()->addFilter('EmailSubject', static function (string $title, string $locale): string {
         return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
     });
 
-    $displayTitle = hooks()->applyFilters('email.subject', 'Release notes', 'en');
+    $displayTitle = hooks()->applyFilters('EmailSubject', 'Release notes', 'en');
     ```
 
   </TabItem>
@@ -98,10 +96,10 @@ A collector invokes each listener with the explicit arguments and returns one ra
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
-    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+    $hooks->addCollector('DashboardWidgets', static fn (string $userId): array => ['owner' => $userId]);
+    $hooks->addCollector('DashboardWidgets', static fn (string $userId): array => ['count' => 3]);
 
-    $cards = $hooks->collect('dashboard.widgets', 'user-42');
+    $cards = $hooks->collect('DashboardWidgets', 'user-42');
     // [['owner' => 'user-42'], ['count' => 3]]
     ```
 
@@ -109,10 +107,10 @@ A collector invokes each listener with the explicit arguments and returns one ra
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
-    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+    hooks()->addCollector('DashboardWidgets', static fn (string $userId): array => ['owner' => $userId]);
+    hooks()->addCollector('DashboardWidgets', static fn (string $userId): array => ['count' => 3]);
 
-    $cards = hooks()->collect('dashboard.widgets', 'user-42');
+    $cards = hooks()->collect('DashboardWidgets', 'user-42');
     // [['owner' => 'user-42'], ['count' => 3]]
     ```
 

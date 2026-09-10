@@ -4,9 +4,6 @@ description: Turn collector results into formatted strings.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import MethodReference from '../../../components/MethodReference.astro';
-
-# Renderers
 
 Renderers turn a collector's results into a string. Use one when callback results need to become text, such as a list of labels or a short piece of markup. Renderers apply to collectors only.
 
@@ -18,31 +15,9 @@ The renderer methods have distinct responsibilities:
 
 | Method | Use it for | Returns or does |
 | --- | --- | --- |
-| [`setRenderer()`](#method-setrenderer) | Configure the formatter for a collector point. | The same `Hooks` instance. |
-| [`render()`](#method-render) | Collect and format results. | A `string`. |
-| [`renderWith()`](#method-renderwith) | Format one call without changing configuration. | A `string`. |
-
-<MethodReference name="setRenderer" signature={`public function setRenderer(
-    string $hookPoint,
-    Renderer|callable|string $renderer,
-): self`} applies="Collectors and renderers" returns="The same Hooks instance." exceptions="Invalid renderer configuration is reported when render() resolves or invokes it." persistent="Yes. It stores or replaces the collector's shared processing slot.">
-  you want a collector to use one renderer for later render() calls.
-</MethodReference>
-
-<MethodReference name="render" signature={`public function render(
-    string $hookPoint,
-    mixed ...$arguments,
-): string`} applies="Collectors and renderers" returns="The configured renderer's string output." empty="The renderer receives an empty result array." exceptions="MissingRendererException is thrown when unset; InvalidRendererException covers invalid renderers and non-string output." persistent="No. It reads but does not change the configured slot.">
-  you need the configured renderer to turn collector results into a string.
-</MethodReference>
-
-<MethodReference name="renderWith" signature={`public function renderWith(
-    string $hookPoint,
-    Renderer|callable|string $renderer,
-    mixed ...$arguments,
-): string`} applies="Collectors and renderers" returns="The supplied renderer's string output." empty="The supplied renderer receives an empty result array." exceptions="InvalidRendererException is thrown for invalid configuration or non-string output; custom exceptions propagate." persistent="No. The supplied renderer is used once and is not stored.">
-  you need a different output format for one call without changing the persistent renderer.
-</MethodReference>
+| [`setRenderer()`](/docs/2.x/api/#method-setrenderer) | Configure the formatter for a collector point. | The same `Hooks` instance. |
+| [`render()`](/docs/2.x/api/#method-render) | Collect and format results. | A `string`. |
+| [`renderWith()`](/docs/2.x/api/#method-renderwith) | Format one call without changing configuration. | A `string`. |
 
 Renderers apply only to collectors. Use `collect()` for raw results and `process()` for non-string reductions.
 
@@ -56,16 +31,16 @@ Renderers apply only to collectors. Use `collect()` for raw results and `process
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addCollector('order.receipt.sections', static fn (Order $order): array => [
+    $hooks->addCollector('OrderReceiptSections', static fn (Order $order): array => [
         'title' => 'Payment',
         'rows' => [
             ['label' => 'Method', 'value' => $order->paymentMethod],
             ['label' => 'Total', 'value' => $order->formattedTotal()],
         ],
     ]);
-    $hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
+    $hooks->setRenderer('OrderReceiptSections', OrderReceiptRenderer::class);
 
-    $html = $hooks->render('order.receipt.sections', $order);
+    $html = $hooks->render('OrderReceiptSections', $order);
     ```
 
   </TabItem>
@@ -74,16 +49,16 @@ Renderers apply only to collectors. Use `collect()` for raw results and `process
     ```php
     use App\Models\Order;
 
-    hooks()->addCollector('order.receipt.sections', static fn (Order $order): array => [
+    hooks()->addCollector('OrderReceiptSections', static fn (Order $order): array => [
         'title' => 'Payment',
         'rows' => [
             ['label' => 'Method', 'value' => $order->paymentMethod],
             ['label' => 'Total', 'value' => $order->formattedTotal()],
         ],
     ]);
-    hooks()->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
+    hooks()->setRenderer('OrderReceiptSections', OrderReceiptRenderer::class);
 
-    $html = hooks()->render('order.receipt.sections', $order);
+    $html = hooks()->render('OrderReceiptSections', $order);
     ```
 
   </TabItem>
@@ -109,11 +84,11 @@ For example, the same collected labels can use a separator selected by the curre
     use Magdicom\Processors\ConcatenateRenderer;
 
     $hooks = new Hooks();
-    $hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
-    $hooks->addCollector('navigation.labels', static fn (): string => 'Billing');
+    $hooks->addCollector('NavigationLabels', static fn (): string => 'Hooks');
+    $hooks->addCollector('NavigationLabels', static fn (): string => 'Billing');
 
     $label = $hooks->renderWith(
-        'navigation.labels',
+        'NavigationLabels',
         new ConcatenateRenderer(' / '),
     );
     // 'Hooks / Billing'
@@ -125,11 +100,11 @@ For example, the same collected labels can use a separator selected by the curre
     ```php
     use Magdicom\Processors\ConcatenateRenderer;
 
-    hooks()->addCollector('navigation.labels', static fn (): string => 'Hooks');
-    hooks()->addCollector('navigation.labels', static fn (): string => 'Billing');
+    hooks()->addCollector('NavigationLabels', static fn (): string => 'Hooks');
+    hooks()->addCollector('NavigationLabels', static fn (): string => 'Billing');
 
     $label = hooks()->renderWith(
-        'navigation.labels',
+        'NavigationLabels',
         new ConcatenateRenderer(' / '),
     );
     // 'Hooks / Billing'
@@ -162,11 +137,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
-$hooks->addCollector('navigation.labels', static fn (): string => 'Beta');
-$hooks->setRenderer('navigation.labels', new ConcatenateRenderer(' · '));
+$hooks->addCollector('NavigationLabels', static fn (): string => 'Hooks');
+$hooks->addCollector('NavigationLabels', static fn (): string => 'Beta');
+$hooks->setRenderer('NavigationLabels', new ConcatenateRenderer(' · '));
 
-$label = $hooks->render('navigation.labels');
+$label = $hooks->render('NavigationLabels');
 // 'Hooks · Beta'
 ```
 
@@ -183,12 +158,12 @@ use Magdicom\Hooks;
 use Magdicom\ProcessingContext;
 
 $hooks = new Hooks();
-$hooks->addCollector('report.sections', static fn (): string => 'Introduction');
-$hooks->setRenderer('report.sections', static function (array $results, ProcessingContext $context): string {
+$hooks->addCollector('ReportSections', static fn (): string => 'Introduction');
+$hooks->setRenderer('ReportSections', static function (array $results, ProcessingContext $context): string {
     return implode(' / ', $results);
 });
 
-$heading = $hooks->render('report.sections');
+$heading = $hooks->render('ReportSections');
 ```
 
 A class-name renderer is resolved through the configured core `Resolver` and must implement `Renderer`. `new Hooks()` uses native `new $className()` resolution. Inject a custom resolver with `new Hooks($resolver)`; the Laravel wrapper supplies its container-backed resolver.

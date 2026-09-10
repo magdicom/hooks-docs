@@ -4,9 +4,6 @@ description: Gather one independent result from each callback.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import MethodReference from '../../../components/MethodReference.astro';
-
-# Collectors
 
 Use a collector when several callbacks should contribute independently. Register with `addCollector()` and call `collect()` with the arguments every callback needs.
 
@@ -18,23 +15,9 @@ The collector methods have two jobs:
 
 | Method | Use it for | Returns |
 | --- | --- | --- |
-| [`addCollector()`](#method-addcollector) | Registering a callback that contributes one result. | A `RegistrationHandle`. |
-| [`collect()`](#method-collect) | Invoking every collector with the same arguments. | One raw result per listener. |
+| [`addCollector()`](/docs/2.x/api/#method-addcollector) | Registering a callback that contributes one result. | A `RegistrationHandle`. |
+| [`collect()`](/docs/2.x/api/#method-collect) | Invoking every collector with the same arguments. | One raw result per listener. |
 
-<MethodReference name="addCollector" signature={`public function addCollector(
-    string $hookPoint,
-    array|callable $callback,
-    int $priority = 10,
-): RegistrationHandle`} applies="Collectors" returns="A handle for this exact registration." empty="The registration is stored, but contributes nothing until collect() runs." exceptions="Callback and resolver exceptions surface when the collector is invoked." persistent="Yes. The callback remains registered until removed.">
-  you want an independent module to contribute one result to a collection.
-</MethodReference>
-
-<MethodReference name="collect" signature={`public function collect(
-    string $hookPoint,
-    mixed ...$arguments,
-): array`} applies="Collectors" returns="One raw callback result per listener, in priority and registration order." empty="An empty array is returned." exceptions="Exceptions from listeners bubble to the caller." persistent="No. It does not configure or change a processor or renderer.">
-  you want the raw contributions and will decide how to interpret them.
-</MethodReference>
 
 The default priority is `10`. `collect()` does not merge, flatten, process, or render the returned entries; choose those operations explicitly when you need them.
 
@@ -48,10 +31,10 @@ Every listener receives the same explicit arguments, and its return value become
 
     $hooks = new Hooks();
 
-    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
-    $hooks->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+    $hooks->addCollector('DashboardWidgets', static fn (string $userId): array => ['owner' => $userId]);
+    $hooks->addCollector('DashboardWidgets', static fn (string $userId): array => ['count' => 3]);
 
-    $cards = $hooks->collect('dashboard.widgets', 'user-42');
+    $cards = $hooks->collect('DashboardWidgets', 'user-42');
     // [['owner' => 'user-42'], ['count' => 3]]
     ```
 
@@ -59,10 +42,10 @@ Every listener receives the same explicit arguments, and its return value become
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['owner' => $userId]);
-    hooks()->addCollector('dashboard.widgets', static fn (string $userId): array => ['count' => 3]);
+    hooks()->addCollector('DashboardWidgets', static fn (string $userId): array => ['owner' => $userId]);
+    hooks()->addCollector('DashboardWidgets', static fn (string $userId): array => ['count' => 3]);
 
-    $cards = hooks()->collect('dashboard.widgets', 'user-42');
+    $cards = hooks()->collect('DashboardWidgets', 'user-42');
     // [['owner' => 'user-42'], ['count' => 3]]
     ```
 
@@ -84,11 +67,11 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$results = $hooks->collect('navigation.items');
+$results = $hooks->collect('NavigationItems');
 // []
 ```
 
-Arguments are explicit. `collect('navigation.items', $userId)` passes `$userId` to every listener; Hooks does not keep a global parameter array or hidden invocation state.
+Arguments are explicit. `collect('NavigationItems', $userId)` passes `$userId` to every listener; Hooks does not keep a global parameter array or hidden invocation state.
 
 ## Remove a collector
 
@@ -103,10 +86,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addCollector('navigation.items', static fn (): string => 'Help');
+$handle = $hooks->addCollector('NavigationItems', static fn (): string => 'Help');
 $handle->remove();
 
-$items = $hooks->collect('navigation.items');
+$items = $hooks->collect('NavigationItems');
 // []
 ```
 

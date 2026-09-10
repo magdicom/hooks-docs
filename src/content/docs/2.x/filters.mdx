@@ -4,9 +4,6 @@ description: Pass a value through an ordered sequence of transformations.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import MethodReference from '../../../components/MethodReference.astro';
-
-# Filters
 
 Use a filter when several parts of your application may adjust the same value. Register callbacks with `addFilter()`, pass the starting value to `applyFilters()`, and use the returned value.
 
@@ -18,24 +15,9 @@ The filter methods have two jobs:
 
 | Method | Use it for | Returns |
 | --- | --- | --- |
-| [`addFilter()`](#method-addfilter) | Registering a value transformation. | A `RegistrationHandle`. |
-| [`applyFilters()`](#method-applyfilters) | Passing a value through the filter chain. | The final value, or the original value when empty. |
+| [`addFilter()`](/docs/2.x/api/#method-addfilter) | Registering a value transformation. | A `RegistrationHandle`. |
+| [`applyFilters()`](/docs/2.x/api/#method-applyfilters) | Passing a value through the filter chain. | The final value, or the original value when empty. |
 
-<MethodReference name="addFilter" signature={`public function addFilter(
-    string $hookPoint,
-    array|callable $callback,
-    int $priority = 10,
-): RegistrationHandle`} applies="Filters" returns="A handle for this exact registration." empty="The filter is stored, but no callback runs until applyFilters() is called." exceptions="Callback and resolver exceptions surface when the filter is invoked." persistent="Yes. The callback remains registered until removed.">
-  you want one module to contribute a transformation to a named value.
-</MethodReference>
-
-<MethodReference name="applyFilters" signature={`public function applyFilters(
-    string $hookPoint,
-    mixed $value,
-    mixed ...$arguments,
-): mixed`} applies="Filters" returns="The value returned by the last filter." empty="The original value is returned unchanged." exceptions="Exceptions from listeners bubble to the caller." persistent="No. It invokes the current listener snapshot.">
-  you want to pass a value through ordered transformations.
-</MethodReference>
 
 The default priority is `10`. Lower priorities run earlier, so priority is part of the order contract when one transformation depends on another.
 
@@ -49,22 +31,22 @@ The current value is always the first callback argument. Any additional argument
 
     $hooks = new Hooks();
 
-    $hooks->addFilter('email.subject', static function (string $title, string $locale): string {
+    $hooks->addFilter('EmailSubject', static function (string $title, string $locale): string {
         return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
     });
 
-    $displayTitle = $hooks->applyFilters('email.subject', 'Release notes', 'en');
+    $displayTitle = $hooks->applyFilters('EmailSubject', 'Release notes', 'en');
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addFilter('email.subject', static function (string $title, string $locale): string {
+    hooks()->addFilter('EmailSubject', static function (string $title, string $locale): string {
         return $locale === 'en' ? $title : '[' . $locale . '] ' . $title;
     });
 
-    $displayTitle = hooks()->applyFilters('email.subject', 'Release notes', 'en');
+    $displayTitle = hooks()->applyFilters('EmailSubject', 'Release notes', 'en');
     ```
 
   </TabItem>
@@ -85,10 +67,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addFilter('email.subject', static fn (string $value): string => trim($value));
-$hooks->addFilter('email.subject', static fn (string $value): string => strtolower($value), priority: 20);
+$hooks->addFilter('EmailSubject', static fn (string $value): string => trim($value));
+$hooks->addFilter('EmailSubject', static fn (string $value): string => strtolower($value), priority: 20);
 
-$subject = $hooks->applyFilters('email.subject', '  Hooks Docs  ');
+$subject = $hooks->applyFilters('EmailSubject', '  Hooks Docs  ');
 // 'hooks docs'
 ```
 
@@ -111,10 +93,10 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addFilter('email.subject', static fn (string $title): string => strtoupper($title));
+$handle = $hooks->addFilter('EmailSubject', static fn (string $title): string => strtoupper($title));
 $handle->remove();
 
-$title = $hooks->applyFilters('email.subject', 'Release notes');
+$title = $hooks->applyFilters('EmailSubject', 'Release notes');
 // 'Release notes'
 ```
 

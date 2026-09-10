@@ -4,9 +4,6 @@ description: Run ordered callbacks for synchronous side effects.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import MethodReference from '../../../components/MethodReference.astro';
-
-# Actions
 
 Use an action when something should happen but the caller does not need a value back. Actions are synchronous and ordered: register callbacks with `addAction()`, then run them with `doAction()`.
 
@@ -18,23 +15,9 @@ The action methods have two jobs:
 
 | Method | Use it for | Returns |
 | --- | --- | --- |
-| [`addAction()`](#method-addaction) | Registering a callback for a named side effect. | A `RegistrationHandle`. |
-| [`doAction()`](#method-doaction) | Running registered callbacks in priority order. | `void`; callback returns are ignored. |
+| [`addAction()`](/docs/2.x/api/#method-addaction) | Registering a callback for a named side effect. | A `RegistrationHandle`. |
+| [`doAction()`](/docs/2.x/api/#method-doaction) | Running registered callbacks in priority order. | `void`; callback returns are ignored. |
 
-<MethodReference name="addAction" signature={`public function addAction(
-    string $hookPoint,
-    array|callable $callback,
-    int $priority = 10,
-): RegistrationHandle`} applies="Actions" returns="A handle for this exact registration." empty="The registration is stored, but nothing runs until doAction() is called." exceptions="Callback and resolver exceptions surface when the action is invoked." persistent="Yes. The callback remains registered until its handle or a removal method is used.">
-  you want to register a synchronous side effect at a named hook point.
-</MethodReference>
-
-<MethodReference name="doAction" signature={`public function doAction(
-    string $hookPoint,
-    mixed ...$arguments,
-): void`} applies="Actions" returns="void; callback return values are ignored." empty="Nothing runs and void is returned." exceptions="Exceptions from listeners bubble to the caller." persistent="No. It only invokes the current listener snapshot.">
-  you want to run the side effects registered for an event-like hook point.
-</MethodReference>
 
 The default priority is `10`. Use a lower number when a listener must run earlier, or a higher number when it should run later.
 
@@ -48,22 +31,22 @@ Callbacks receive the extra arguments passed to `doAction()`, in the same order:
 
     $hooks = new Hooks();
 
-    $hooks->addAction('invoice.paid', static function (int $invoiceId, string $currency): void {
+    $hooks->addAction('InvoicePaid', static function (int $invoiceId, string $currency): void {
         // Write an audit entry or notify a synchronous integration.
     }, priority: 10);
 
-    $hooks->doAction('invoice.paid', 42, 'USD');
+    $hooks->doAction('InvoicePaid', 42, 'USD');
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addAction('invoice.paid', static function (int $invoiceId, string $currency): void {
+    hooks()->addAction('InvoicePaid', static function (int $invoiceId, string $currency): void {
         // Write an audit entry or notify a synchronous integration.
     }, priority: 10);
 
-    hooks()->doAction('invoice.paid', 42, 'USD');
+    hooks()->doAction('InvoicePaid', 42, 'USD');
     ```
 
   </TabItem>
@@ -84,15 +67,15 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$hooks->addAction('cache.refreshed', static function (): void {
+$hooks->addAction('CacheRefreshed', static function (): void {
     // Runs first.
 }, priority: 5);
 
-$hooks->addAction('cache.refreshed', static function (): void {
+$hooks->addAction('CacheRefreshed', static function (): void {
     // Runs second.
 }, priority: 10);
 
-$hooks->doAction('cache.refreshed');
+$hooks->doAction('CacheRefreshed');
 ```
 
 Hooks takes a sorted snapshot before it starts. Adding or removing a listener inside a callback does not change the callbacks already selected for this run; the change is visible on the next run. Exceptions reach the caller.
@@ -114,12 +97,12 @@ use Magdicom\Hooks;
 
 $hooks = new Hooks();
 
-$handle = $hooks->addAction('cache.refreshed', static function (): void {
+$handle = $hooks->addAction('CacheRefreshed', static function (): void {
     // This exact registration can be removed later.
 });
 
 $handle->remove();
-$hooks->doAction('cache.refreshed');
+$hooks->doAction('CacheRefreshed');
 ```
 
 The handle belongs to the `Hooks` instance that created it. If you prefer callback-based removal, `removeAction($hookPoint, $callback, $priority)` removes the first matching callback at that priority. Use `removeAllActions(?string $hookPoint = null)` to remove action registrations in bulk.

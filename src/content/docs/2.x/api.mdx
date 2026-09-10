@@ -6,8 +6,6 @@ description: Signatures and return values for the Hooks 2.x public API.
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 import MethodReference from '../../../components/MethodReference.astro';
 
-# API reference
-
 Use this page when you need the exact public methods behind [actions](/docs/2.x/actions), [filters](/docs/2.x/filters), and [collectors](/docs/2.x/collectors). It explains how to register, inspect, order, and remove callbacks, with signatures and return values in one place.
 
 The published signatures and edge cases here match `magdicom/hooks` `v2.0.0-beta.2`. Start with the guide for your hook type, then use this page when you need a complete method summary.
@@ -55,30 +53,30 @@ Registrations belong to the `Hooks` instance that created them. The default prio
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addAction('profile.updated', static function (int $profileId): void {
+    $hooks->addAction('ProfileUpdated', static function (int $profileId): void {
         // Runs first.
     }, priority: 5);
 
-    $hooks->addAction('profile.updated', static function (int $profileId): void {
+    $hooks->addAction('ProfileUpdated', static function (int $profileId): void {
         // Runs second.
     });
 
-    $hooks->doAction('profile.updated', 42);
+    $hooks->doAction('ProfileUpdated', 42);
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addAction('profile.updated', static function (int $profileId): void {
+    hooks()->addAction('ProfileUpdated', static function (int $profileId): void {
         // Runs first.
     }, priority: 5);
 
-    hooks()->addAction('profile.updated', static function (int $profileId): void {
+    hooks()->addAction('ProfileUpdated', static function (int $profileId): void {
         // Runs second.
     });
 
-    hooks()->doAction('profile.updated', 42);
+    hooks()->doAction('ProfileUpdated', 42);
     ```
 
   </TabItem>
@@ -129,7 +127,7 @@ The handle is a reference to a registration, not a copy of the callback. Keep it
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $handle = $hooks->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
+    $handle = $hooks->addFilter('EmailSubject', static fn (string $value): string => strtoupper($value));
 
     $handle->remove(); // true
     $handle->remove(); // false
@@ -139,7 +137,7 @@ The handle is a reference to a registration, not a copy of the callback. Keep it
   <TabItem label="Laravel">
 
     ```php
-    $handle = hooks()->addFilter('email.subject', static fn (string $value): string => strtoupper($value));
+    $handle = hooks()->addFilter('EmailSubject', static fn (string $value): string => strtoupper($value));
 
     $handle->remove(); // true
     $handle->remove(); // false
@@ -218,12 +216,12 @@ use Magdicom\Hooks;
 $hooks = new Hooks();
 $callback = static fn (string $value): string => trim($value);
 
-$hooks->addFilter('email.subject', $callback, priority: 20);
+$hooks->addFilter('EmailSubject', $callback, priority: 20);
 
-$hasAny = $hooks->has('email.subject');
-$hasFilter = $hooks->hasFilter('email.subject');
-$hasExactPriority = $hooks->hasFilter('email.subject', $callback, priority: 20);
-$hasWrongPriority = $hooks->hasFilter('email.subject', $callback, priority: 10);
+$hasAny = $hooks->has('EmailSubject');
+$hasFilter = $hooks->hasFilter('EmailSubject');
+$hasExactPriority = $hooks->hasFilter('EmailSubject', $callback, priority: 20);
+$hasWrongPriority = $hooks->hasFilter('EmailSubject', $callback, priority: 10);
 ```
 
 The handle collections are useful when you need metadata or exact removal later. For example:
@@ -238,16 +236,16 @@ $sendReceipt = static function (int $invoiceId): void {
 $applyDiscount = static fn (int $total): int => $total - 100;
 $billingWidget = static fn (): array => ['key' => 'revenue'];
 
-$hooks->addAction('invoice.paid', $sendReceipt, priority: 20);
-$hooks->addFilter('invoice.total', $applyDiscount);
-$hooks->addCollector('dashboard.widgets', $billingWidget);
+$hooks->addAction('InvoicePaid', $sendReceipt, priority: 20);
+$hooks->addFilter('InvoiceTotal', $applyDiscount);
+$hooks->addCollector('DashboardWidgets', $billingWidget);
 
 $totalRegistrations = $hooks->count();
-$invoiceRegistrations = $hooks->count('invoice.paid');
-$allInvoiceListeners = $hooks->listeners('invoice.paid');
-$invoiceActions = $hooks->actions('invoice.paid');
-$invoiceFilters = $hooks->filters('invoice.paid');
-$widgetCollectors = $hooks->collectors('dashboard.widgets');
+$invoiceRegistrations = $hooks->count('InvoicePaid');
+$allInvoiceListeners = $hooks->listeners('InvoicePaid');
+$invoiceActions = $hooks->actions('InvoicePaid');
+$invoiceFilters = $hooks->filters('InvoicePaid');
+$widgetCollectors = $hooks->collectors('DashboardWidgets');
 
 $firstListener = $allInvoiceListeners[0] ?? null;
 $firstListener?->priority();
@@ -333,12 +331,12 @@ $late = static function (): void {
     // Added during dispatch, so it does not run in that same snapshot.
 };
 
-$hooks->addAction('order.cancelled', static function () use ($hooks, $late): void {
-    $hooks->addAction('order.cancelled', $late);
+$hooks->addAction('OrderCancelled', static function () use ($hooks, $late): void {
+    $hooks->addAction('OrderCancelled', $late);
 });
 
-$hooks->doAction('order.cancelled');
-$hooks->doAction('order.cancelled'); // The new listener is available here.
+$hooks->doAction('OrderCancelled');
+$hooks->doAction('OrderCancelled'); // The new listener is available here.
 ```
 
 Nested `collect()`, `process()`, and `render()` calls use their own snapshots. Exceptions reach the caller, and a later invocation can still use the registry.
@@ -353,15 +351,34 @@ The following summary covers the public methods on `Magdicom\Hooks`. Private hel
 
 | Method | Purpose and return value | Applies to / relevant exceptions |
 | --- | --- | --- |
-| [`__construct()`](#method-construct) | Create a Hooks registry. | `Hooks` instance. |
+| [`__construct()`](#method-__construct) | Create a Hooks registry. | `Hooks` instance. |
 | [`doAction()`](#method-doaction) | Invoke action listeners. | `void`. |
 | [`applyFilters()`](#method-applyfilters) | Transform a value sequentially. | Final `mixed` value. |
 | [`collect()`](#method-collect) | Gather raw collector results. | `array`. |
 
 Registration methods return a `RegistrationHandle` and default to priority `10`:
 
-<MethodReference name="construct" signature="public function __construct(?Resolver $resolver = null)" applies="Core Hooks instances" returns="A new Hooks object using NativeResolver when no resolver is supplied." exceptions="Exceptions from a custom resolver can surface during later resolution." persistent="The resolver is retained by this Hooks instance.">
+<MethodReference name="__construct" displayName="__construct()" signature="public function __construct(?Resolver $resolver = null)" applies="Core Hooks instances" returns="A new Hooks object using NativeResolver when no resolver is supplied." exceptions="Exceptions from a custom resolver can surface during later resolution." persistent="The resolver is retained by this Hooks instance.">
   you want to create an isolated core registry, optionally with a custom resolver.
+</MethodReference>
+<MethodReference name="doAction" signature={`public function doAction(
+    string $hookPoint,
+    mixed ...$arguments,
+): void`} applies="Actions" returns="void; callback returns are ignored." empty="Nothing runs." exceptions="Listener exceptions bubble." persistent="No; it invokes a snapshot.">
+  you want to run registered side effects.
+</MethodReference>
+<MethodReference name="applyFilters" signature={`public function applyFilters(
+    string $hookPoint,
+    mixed $value,
+    mixed ...$arguments,
+): mixed`} applies="Filters" returns="The final transformed value." empty="The original value is returned." exceptions="Listener exceptions bubble." persistent="No; it invokes a snapshot.">
+  you want to pass a value through registered transformations.
+</MethodReference>
+<MethodReference name="collect" signature={`public function collect(
+    string $hookPoint,
+    mixed ...$arguments,
+): array`} applies="Collectors" returns="One raw result per listener." empty="An empty array." exceptions="Listener exceptions bubble." persistent="No; it does not apply persistent processing configuration.">
+  you want the unprocessed contributions from a collector.
 </MethodReference>
 
 ```php
@@ -396,6 +413,12 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 </MethodReference>
 <MethodReference name="processor" signature="public function processor(string $hookPoint): ResultProcessor|callable|string|null" applies="Collectors" returns="The configured reference, or null.">
   you want to inspect the persistent processor reference.
+</MethodReference>
+<MethodReference name="hasProcessor" signature="public function hasProcessor(string $hookPoint): bool" applies="Collectors" returns="true when a processor is configured; otherwise false." empty="false when the slot is empty." persistent="No; this only inspects configuration.">
+  you want to check whether process() can use a configured processor.
+</MethodReference>
+<MethodReference name="clearProcessor" signature="public function clearProcessor(string $hookPoint): bool" applies="Collectors" returns="true when a processor slot was removed; otherwise false." persistent="Yes; it removes the persistent slot.">
+  you want to remove a collector's configured processor.
 </MethodReference>
 <MethodReference name="process" signature={`public function process(
     string $hookPoint,
@@ -453,28 +476,6 @@ They apply respectively to actions, filters, and collectors. A callback may be a
 | [`removeAllFilters()`](#method-removeallfilters) | Removes filter registrations. | Filters |
 | [`removeAllCollectors()`](#method-removeallcollectors) | Removes collector registrations. | Collectors |
 
-### Operational methods
-
-These public methods provide diagnostics rather than dispatch:
-
-| Method | Purpose and return value | Applies to |
-| --- | --- | --- |
-| [`debug()`](#method-debug) | Enable or disable debug logging. | `self`. |
-| [`setSourceFile()`](#method-setsourcefile) | Store a source-file label. | `self`. |
-| [`getSourceFile()`](#method-getsourcefile) | Read the source-file label. | `string`. |
-
-These methods do not change action, filter, or collector behavior. The debug callback and source label are metadata, not a replacement for explicit arguments or application logging.
-
-<MethodReference name="debug" signature="public function debug(callable|null $callback): self" applies="Core diagnostics" returns="The same Hooks instance." persistent="Yes; it changes diagnostic configuration only.">
-  you need optional diagnostic logging while investigating registrations or dispatch.
-</MethodReference>
-<MethodReference name="setSourceFile" signature="public function setSourceFile(?string $path = null): self" applies="Core diagnostics" returns="The same Hooks instance." persistent="Yes; it stores a source label only.">
-  you want to attach a source-file label to diagnostic output.
-</MethodReference>
-<MethodReference name="getSourceFile" signature="public function getSourceFile(): string" applies="Core diagnostics" returns="The configured label, or `Unknown` when none was set.">
-  you need to read the current diagnostic source label.
-</MethodReference>
-
 ## Supporting public contracts
 
 Processors, renderers, and class callbacks use these core contracts:
@@ -521,6 +522,16 @@ public function __construct(string $hookPoint, mixed ...$arguments)
 public function hookPoint(): string
 public function arguments(): array
 ```
+
+<MethodReference name="ProcessingContext::__construct" displayName="__construct()" anchor="method-processingcontext-construct" signature="public function __construct(string $hookPoint, mixed ...$arguments)" applies="ProcessingContext" returns="A context object containing the current hook point and invocation arguments.">
+  you are implementing a processor or renderer and need the original call context.
+</MethodReference>
+<MethodReference name="ProcessingContext::hookPoint" displayName="hookPoint()" anchor="method-processingcontext-hookpoint" signature="public function hookPoint(): string" applies="ProcessingContext" returns="The hook point being processed or rendered.">
+  you need to branch on the current collector name inside a reusable processor or renderer.
+</MethodReference>
+<MethodReference name="ProcessingContext::arguments" displayName="arguments()" anchor="method-processingcontext-arguments" signature="public function arguments(): array" applies="ProcessingContext" returns="The original invocation arguments in their original order.">
+  you need an explicit argument passed to process() or render().
+</MethodReference>
 
 `RegistrationHandle::__construct(...)` is public in the released class but is an implementation-created value: normal callers should obtain handles from `addAction()`, `addFilter()`, or `addCollector()` rather than constructing one. Its internal remover closure preserves exact registration-id behavior.
 

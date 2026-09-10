@@ -3,8 +3,6 @@ title: Laravel integration
 description: Use Hooks through Laravel's container, facade, and helper.
 ---
 
-# Laravel
-
 The optional `magdicom/laravel-hooks` package connects the framework-independent Hooks core to Laravel's service container. It gives you familiar Laravel access points and container-backed class resolution; the action, filter, collector, processor, and renderer APIs remain the core APIs.
 
 This page covers `magdicom/laravel-hooks` `v2.0.0-beta.3` with `magdicom/hooks` `v2.0.0-beta.2`. See the [source audit](https://github.com/magdicom/hooks-docs/blob/main/source-audit.md#laravel-integration-truth-set) for the package details behind these examples.
@@ -56,11 +54,11 @@ The helper takes no arguments and returns `Magdicom\Hooks`. Put your invocation 
 
 declare(strict_types=1);
 
-hooks()->addAction('invoice.paid', static function (int $invoiceId): void {
+hooks()->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Run a synchronous side effect.
 });
 
-hooks()->doAction('invoice.paid', 42);
+hooks()->doAction('InvoicePaid', 42);
 ```
 
 Passing arguments to `hooks()` throws `InvalidArgumentException`. Pass those arguments to `doAction()`, `applyFilters()`, `collect()`, `process()`, or `render()`.
@@ -76,11 +74,11 @@ declare(strict_types=1);
 
 use Magdicom\LaravelHooks\Facades\Hooks;
 
-Hooks::addFilter('profile.label', static function (string $label): string {
+Hooks::addFilter('ProfileLabel', static function (string $label): string {
     return strtoupper($label);
 });
 
-$label = Hooks::applyFilters('profile.label', 'administrator');
+$label = Hooks::applyFilters('ProfileLabel', 'administrator');
 ```
 
 The facade uses the same container binding as `app(Magdicom\Hooks::class)` and `hooks()`.
@@ -104,7 +102,7 @@ final class ProfileLabel
 
     public function make(string $name): string
     {
-        return $this->hooks->applyFilters('profile.label', $name);
+        return $this->hooks->applyFilters('ProfileLabel', $name);
     }
 }
 ```

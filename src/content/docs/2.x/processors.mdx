@@ -4,9 +4,6 @@ description: Turn collector results into the value your application needs.
 ---
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
-import MethodReference from '../../../components/MethodReference.astro';
-
-# Processors
 
 Processors reduce the raw results from a collector to one value. Use them when several modules contribute data but the caller needs a clear answer, such as the first available email, a merged list, or a boolean decision.
 
@@ -18,46 +15,12 @@ The processor methods have distinct responsibilities:
 
 | Method | Use it for | Returns or does |
 | --- | --- | --- |
-| [`setProcessor()`](#method-setprocessor) | Configure the reduction for a collector point. | The same `Hooks` instance. |
-| [`hasProcessor()`](#method-hasprocessor) | Check whether a processor is configured. | `bool`. |
-| [`processor()`](#method-processor) | Inspect the configured processor reference. | A processor, callable, class name, or `null`. |
-| [`clearProcessor()`](#method-clearprocessor) | Remove the configured processor. | `bool`. |
-| [`process()`](#method-process) | Collect and reduce results. | The processor output. |
-| [`processWith()`](#method-processwith) | Reduce one call without changing configuration. | The processor output. |
-
-<MethodReference name="setProcessor" signature={`public function setProcessor(
-    string $hookPoint,
-    ResultProcessor|callable|string $processor,
-): self`} applies="Collectors and processors" returns="The same Hooks instance." exceptions="An invalid class-name processor raises InvalidProcessorException when processing resolves it." persistent="Yes. It stores or replaces the collector's processing slot.">
-  you want every later process() call for a collector to use the same reduction.
-</MethodReference>
-
-<MethodReference name="hasProcessor" signature={`public function hasProcessor(string $hookPoint): bool`} applies="Collectors and processors" returns="true when a processor slot exists, otherwise false." persistent="No. It only inspects configuration.">
-  you need to check configuration before calling process().
-</MethodReference>
-
-<MethodReference name="processor" signature={`public function processor(string $hookPoint): ResultProcessor|callable|string|null`} applies="Collectors and processors" returns="The stored processor reference, or null." persistent="No. It only inspects configuration.">
-  you need to inspect or replace the current processor reference.
-</MethodReference>
-
-<MethodReference name="clearProcessor" signature={`public function clearProcessor(string $hookPoint): bool`} applies="Collectors and processors" returns="true when a slot was removed; false when none existed." persistent="Yes. It removes the processor slot.">
-  you want to stop using the configured processor for a collector.
-</MethodReference>
-
-<MethodReference name="process" signature={`public function process(
-    string $hookPoint,
-    mixed ...$arguments,
-): mixed`} applies="Collectors and processors" returns="The configured processor's output." empty="The collector supplies an empty array to the processor." exceptions="MissingProcessorException is thrown when no processor is configured; invalid processor classes raise InvalidProcessorException." persistent="No. It reads but does not change the configured slot.">
-  you want to collect and reduce a collector's results using its configured processor.
-</MethodReference>
-
-<MethodReference name="processWith" signature={`public function processWith(
-    string $hookPoint,
-    ResultProcessor|callable|string $processor,
-    mixed ...$arguments,
-): mixed`} applies="Collectors and processors" returns="The supplied processor's output." empty="The supplied processor receives an empty result array." exceptions="Invalid processor class references raise InvalidProcessorException; custom processor exceptions propagate." persistent="No. The supplied processor is used once and is not stored.">
-  you need a different reduction for one call without changing the persistent choice.
-</MethodReference>
+| [`setProcessor()`](/docs/2.x/api/#method-setprocessor) | Configure the reduction for a collector point. | The same `Hooks` instance. |
+| [`hasProcessor()`](/docs/2.x/api/#method-hasprocessor) | Check whether a processor is configured. | `bool`. |
+| [`processor()`](/docs/2.x/api/#method-processor) | Inspect the configured processor reference. | A processor, callable, class name, or `null`. |
+| [`clearProcessor()`](/docs/2.x/api/#method-clearprocessor) | Remove the configured processor. | `bool`. |
+| [`process()`](/docs/2.x/api/#method-process) | Collect and reduce results. | The processor output. |
+| [`processWith()`](/docs/2.x/api/#method-processwith) | Reduce one call without changing configuration. | The processor output. |
 
 Processors apply only to collectors. `collect()` still returns the raw list and bypasses this configuration.
 
@@ -72,11 +35,11 @@ Processors apply only to collectors. `collect()` still returns the raw list and 
     use Magdicom\Processors\FirstNonNullProcessor;
 
     $hooks = new Hooks();
-    $hooks->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->workEmail);
-    $hooks->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->personalEmail);
-    $hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+    $hooks->addCollector('CustomerPrimaryEmail', static fn (Customer $customer): ?string => $customer->workEmail);
+    $hooks->addCollector('CustomerPrimaryEmail', static fn (Customer $customer): ?string => $customer->personalEmail);
+    $hooks->setProcessor('CustomerPrimaryEmail', FirstNonNullProcessor::class);
 
-    $email = $hooks->process('customer.primary_email', $customer);
+    $email = $hooks->process('CustomerPrimaryEmail', $customer);
     ```
 
   </TabItem>
@@ -86,17 +49,17 @@ Processors apply only to collectors. `collect()` still returns the raw list and 
     use App\Models\Customer;
     use Magdicom\Processors\FirstNonNullProcessor;
 
-    hooks()->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->workEmail);
-    hooks()->addCollector('customer.primary_email', static fn (Customer $customer): ?string => $customer->personalEmail);
-    hooks()->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+    hooks()->addCollector('CustomerPrimaryEmail', static fn (Customer $customer): ?string => $customer->workEmail);
+    hooks()->addCollector('CustomerPrimaryEmail', static fn (Customer $customer): ?string => $customer->personalEmail);
+    hooks()->setProcessor('CustomerPrimaryEmail', FirstNonNullProcessor::class);
 
-    $email = hooks()->process('customer.primary_email', $customer);
+    $email = hooks()->process('CustomerPrimaryEmail', $customer);
     ```
 
   </TabItem>
 </Tabs>
 
-Calling `collect('customer.primary_email', $customer)` on the same endpoint still returns one raw result per listener. It bypasses processor and renderer configuration. Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
+Calling `collect('CustomerPrimaryEmail', $customer)` on the same endpoint still returns one raw result per listener. It bypasses processor and renderer configuration. Without a configured processor, `process()` throws `MissingProcessorException`. `clearProcessor()` removes the slot and reports whether one existed. `setProcessor()` replaces the processor for that collector point.
 
 ### One-off processing
 
@@ -112,10 +75,10 @@ This is useful when the same collector can be viewed in more than one way. For e
     use Magdicom\Processors\FirstNonNullProcessor;
 
     $hooks = new Hooks();
-    $hooks->addCollector('customer.email_candidates', static fn (): ?string => null);
-    $hooks->addCollector('customer.email_candidates', static fn (): ?string => 'billing@example.test');
+    $hooks->addCollector('CustomerEmailCandidates', static fn (): ?string => null);
+    $hooks->addCollector('CustomerEmailCandidates', static fn (): ?string => 'billing@example.test');
 
-    $email = $hooks->processWith('customer.email_candidates', FirstNonNullProcessor::class);
+    $email = $hooks->processWith('CustomerEmailCandidates', FirstNonNullProcessor::class);
     // 'billing@example.test'
     ```
 
@@ -125,10 +88,10 @@ This is useful when the same collector can be viewed in more than one way. For e
     ```php
     use Magdicom\Processors\FirstNonNullProcessor;
 
-    hooks()->addCollector('customer.email_candidates', static fn (): ?string => null);
-    hooks()->addCollector('customer.email_candidates', static fn (): ?string => 'billing@example.test');
+    hooks()->addCollector('CustomerEmailCandidates', static fn (): ?string => null);
+    hooks()->addCollector('CustomerEmailCandidates', static fn (): ?string => 'billing@example.test');
 
-    $email = hooks()->processWith('customer.email_candidates', FirstNonNullProcessor::class);
+    $email = hooks()->processWith('CustomerEmailCandidates', FirstNonNullProcessor::class);
     // 'billing@example.test'
     ```
 
@@ -141,6 +104,8 @@ This is useful when the same collector can be viewed in more than one way. For e
 
 The released built-ins live under `Magdicom\Processors` and implement `ResultProcessor`. Each receives `(array $results, ProcessingContext $context)` and returns its documented value.
 
+<div class="processor-comparison">
+
 | Processor | Collector results | Return value | Empty results | Keys and failures |
 | --- | --- | --- | --- | --- |
 | `FirstProcessor` | Any values | First value | `null` | Keeps the selected value; no extra validation |
@@ -150,6 +115,8 @@ The released built-ins live under `Magdicom\Processors` and implement `ResultPro
 | `FlattenProcessor` | Arrays | One flattened array | `[]` | Numeric keys are reindexed and array keys are discarded; invalid depth or non-arrays throw |
 | `BooleanAndProcessor` | Strict booleans | `bool` | `true` | Non-booleans throw `UnexpectedValueException` |
 | `BooleanOrProcessor` | Strict booleans | `bool` | `false` | Non-booleans throw `UnexpectedValueException` |
+
+</div>
 
 All built-ins receive the original hook point and invocation arguments through `ProcessingContext`. They do not add shortcut methods such as `first()`, `last()`, `merge()`, or `flatten()`.
 
@@ -162,11 +129,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\FirstProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('customer.primary_email', static fn (): ?string => 'work@example.test');
-$hooks->addCollector('customer.primary_email', static fn (): ?string => 'personal@example.test');
-$hooks->setProcessor('customer.primary_email', FirstProcessor::class);
+$hooks->addCollector('CustomerPrimaryEmail', static fn (): ?string => 'work@example.test');
+$hooks->addCollector('CustomerPrimaryEmail', static fn (): ?string => 'personal@example.test');
+$hooks->setProcessor('CustomerPrimaryEmail', FirstProcessor::class);
 
-$email = $hooks->process('customer.primary_email');
+$email = $hooks->process('CustomerPrimaryEmail');
 // 'work@example.test'
 ```
 
@@ -179,11 +146,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\LastProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('checkout.banner', static fn (): string => 'Standard checkout');
-$hooks->addCollector('checkout.banner', static fn (): string => 'Holiday checkout');
-$hooks->setProcessor('checkout.banner', LastProcessor::class);
+$hooks->addCollector('CheckoutBanner', static fn (): string => 'Standard checkout');
+$hooks->addCollector('CheckoutBanner', static fn (): string => 'Holiday checkout');
+$hooks->setProcessor('CheckoutBanner', LastProcessor::class);
 
-$banner = $hooks->process('checkout.banner');
+$banner = $hooks->process('CheckoutBanner');
 // 'Holiday checkout'
 ```
 
@@ -196,11 +163,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\FirstNonNullProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('customer.primary_email', static fn (): ?string => null);
-$hooks->addCollector('customer.primary_email', static fn (): ?string => 'personal@example.test');
-$hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
+$hooks->addCollector('CustomerPrimaryEmail', static fn (): ?string => null);
+$hooks->addCollector('CustomerPrimaryEmail', static fn (): ?string => 'personal@example.test');
+$hooks->setProcessor('CustomerPrimaryEmail', FirstNonNullProcessor::class);
 
-$email = $hooks->process('customer.primary_email');
+$email = $hooks->process('CustomerPrimaryEmail');
 // 'personal@example.test'
 ```
 
@@ -213,11 +180,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\MergeProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('checkout.payment_data', static fn (): array => ['currency' => 'USD']);
-$hooks->addCollector('checkout.payment_data', static fn (): array => ['provider' => 'card']);
-$hooks->setProcessor('checkout.payment_data', MergeProcessor::class);
+$hooks->addCollector('CheckoutPaymentData', static fn (): array => ['currency' => 'USD']);
+$hooks->addCollector('CheckoutPaymentData', static fn (): array => ['provider' => 'card']);
+$hooks->setProcessor('CheckoutPaymentData', MergeProcessor::class);
 
-$data = $hooks->process('checkout.payment_data');
+$data = $hooks->process('CheckoutPaymentData');
 // ['currency' => 'USD', 'provider' => 'card']
 ```
 
@@ -230,10 +197,10 @@ use Magdicom\Hooks;
 use Magdicom\Processors\FlattenProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('navigation.items', static fn (): array => ['Account', ['Billing', 'Help']]);
-$hooks->setProcessor('navigation.items', new FlattenProcessor(depth: 1));
+$hooks->addCollector('NavigationItems', static fn (): array => ['Account', ['Billing', 'Help']]);
+$hooks->setProcessor('NavigationItems', new FlattenProcessor(depth: 1));
 
-$items = $hooks->process('navigation.items');
+$items = $hooks->process('NavigationItems');
 // ['Account', 'Billing', 'Help']
 ```
 
@@ -246,11 +213,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\BooleanAndProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('checkout.allowed', static fn (): bool => true);
-$hooks->addCollector('checkout.allowed', static fn (): bool => true);
-$hooks->setProcessor('checkout.allowed', new BooleanAndProcessor());
+$hooks->addCollector('CheckoutAllowed', static fn (): bool => true);
+$hooks->addCollector('CheckoutAllowed', static fn (): bool => true);
+$hooks->setProcessor('CheckoutAllowed', new BooleanAndProcessor());
 
-$allowed = $hooks->process('checkout.allowed');
+$allowed = $hooks->process('CheckoutAllowed');
 // true
 ```
 
@@ -263,11 +230,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\BooleanOrProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('checkout.expedited', static fn (): bool => false);
-$hooks->addCollector('checkout.expedited', static fn (): bool => true);
-$hooks->setProcessor('checkout.expedited', new BooleanOrProcessor());
+$hooks->addCollector('CheckoutExpedited', static fn (): bool => false);
+$hooks->addCollector('CheckoutExpedited', static fn (): bool => true);
+$hooks->setProcessor('CheckoutExpedited', new BooleanOrProcessor());
 
-$expedited = $hooks->process('checkout.expedited');
+$expedited = $hooks->process('CheckoutExpedited');
 // true
 ```
 
@@ -280,13 +247,13 @@ use Magdicom\Hooks;
 use Magdicom\ProcessingContext;
 
 $hooks = new Hooks();
-$hooks->addCollector('report.scores', static fn (): int => 8);
-$hooks->addCollector('report.scores', static fn (): int => 13);
-$hooks->setProcessor('report.scores', static function (array $results, ProcessingContext $context): int {
+$hooks->addCollector('ReportScores', static fn (): int => 8);
+$hooks->addCollector('ReportScores', static fn (): int => 13);
+$hooks->setProcessor('ReportScores', static function (array $results, ProcessingContext $context): int {
     return array_sum($results);
 });
 
-$total = $hooks->process('report.scores');
+$total = $hooks->process('ReportScores');
 // 21
 ```
 
@@ -300,8 +267,8 @@ Class-name processors are resolved when `process()` runs and must implement `Res
     use Magdicom\Processors\FirstNonNullProcessor;
 
     $hooks = new Hooks();
-    $hooks->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
-    $email = $hooks->process('customer.primary_email', $customer);
+    $hooks->setProcessor('CustomerPrimaryEmail', FirstNonNullProcessor::class);
+    $email = $hooks->process('CustomerPrimaryEmail', $customer);
     ```
 
   </TabItem>
@@ -310,8 +277,8 @@ Class-name processors are resolved when `process()` runs and must implement `Res
     ```php
     use Magdicom\Processors\FirstNonNullProcessor;
 
-    hooks()->setProcessor('customer.primary_email', FirstNonNullProcessor::class);
-    $email = hooks()->process('customer.primary_email', $customer);
+    hooks()->setProcessor('CustomerPrimaryEmail', FirstNonNullProcessor::class);
+    $email = hooks()->process('CustomerPrimaryEmail', $customer);
     ```
 
   </TabItem>

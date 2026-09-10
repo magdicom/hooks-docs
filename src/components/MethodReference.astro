@@ -1,21 +1,28 @@
 ---
+import { Code } from '@astrojs/starlight/components'
+
 interface Props {
   name: string
   signature: string
   applies: string
   returns: string
+  displayName?: string
+  anchor?: string
   empty?: string
   exceptions?: string
   persistent?: string
 }
 
-const { name, signature, applies, returns, empty, exceptions, persistent } = Astro.props
-const anchor = `method-${name.toLowerCase()}`
+const { name, signature, applies, returns, displayName, anchor: suppliedAnchor, empty, exceptions, persistent } = Astro.props
+const anchor = suppliedAnchor ?? `method-${name.toLowerCase()}`
+const heading = displayName ?? `${name}()`
 ---
 
 <article class="method-reference" id={anchor}>
-  <h3><a href={`#${anchor}`}>{name}()</a></h3>
-  <pre class="method-signature"><code>{signature}</code></pre>
+  <h3><a href={`#${anchor}`} aria-label={`Link to ${heading} reference`}>{heading}</a></h3>
+  <div class="method-signature">
+    <Code code={signature} lang="php" />
+  </div>
   <div class="method-details">
     <div class="method-use"><strong>Use it when:</strong><slot /></div>
     <p><strong>Applies to:</strong> {applies}</p>

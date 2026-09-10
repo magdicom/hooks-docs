@@ -5,11 +5,9 @@ description: Practical ways to use Hooks for integrations, customization, and co
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Use Cases
-
 Hooks is useful when one part of an application should offer a stable place for other code to participate. The original class owns the hook point; modules add behavior without forcing that class to know every integration.
 
-The examples on this page use a recommended naming style: lowercase, dot-separated names such as `invoice.paid` and `dashboard.widgets`. Hook names are plain string identifiers, so treat them as stable public contracts. The package does not enforce this naming style, and names are case-sensitive: `invoice.paid` and `Invoice.Paid` are different hook points.
+The examples on this page use a readable event-style naming convention: PascalCase names such as `InvoicePaid` and `DashboardWidgets`. Hook points are arbitrary string identifiers, so applications may choose another convention. Treat names as stable public contracts because they are case-sensitive: `InvoicePaid` and `Invoice.Paid` are different hook points.
 
 The snippets focus on the important lines, so they omit `<?php` and `declare(strict_types=1);`. Your application can use strict types according to its own project conventions; Hooks does not require that declaration specifically.
 
@@ -24,16 +22,16 @@ The extension idea is the same in both environments. Only the way you reach the 
     use Magdicom\Hooks;
 
     $hooks = new Hooks();
-    $hooks->addAction('invoice.paid', $callback);
-    $hooks->doAction('invoice.paid', $invoice);
+    $hooks->addAction('InvoicePaid', $callback);
+    $hooks->doAction('InvoicePaid', $invoice);
     ```
 
   </TabItem>
   <TabItem label="Laravel">
 
     ```php
-    hooks()->addAction('invoice.paid', $callback);
-    hooks()->doAction('invoice.paid', $invoice);
+    hooks()->addAction('InvoicePaid', $callback);
+    hooks()->doAction('InvoicePaid', $invoice);
     ```
 
   </TabItem>
@@ -49,7 +47,7 @@ When an invoice is paid, several independent modules may need to react. The bill
 
 ### Expose the hook point
 
-The invoice service publishes `invoice.paid` after the payment has been recorded:
+The invoice service publishes `InvoicePaid` after the payment has been recorded:
 
 ```php
 use Magdicom\Hooks;
@@ -63,7 +61,7 @@ final class InvoiceService
     public function markPaid(int $invoiceId): void
     {
         // Persist the payment first.
-        $this->hooks->doAction('invoice.paid', $invoiceId);
+        $this->hooks->doAction('InvoicePaid', $invoiceId);
     }
 }
 ```
@@ -73,19 +71,19 @@ final class InvoiceService
 Separate modules register their own callbacks. The invoice service has no direct dependency on any of them:
 
 ```php
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+$hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Send the receipt.
 });
 
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+$hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Update the CRM.
 });
 
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+$hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Record an analytics conversion.
 });
 
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+$hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Notify the accounting integration.
 });
 ```
@@ -100,18 +98,18 @@ Different parts of checkout may adjust an invoice total. Directly calling a disc
 
 ### Expose and extend the value
 
-The invoice code passes the total in cents through `invoice.total`:
+The invoice code passes the total in cents through `InvoiceTotal`:
 
 ```php
-$hooks->addFilter('invoice.total', static function (int $total): int {
+$hooks->addFilter('InvoiceTotal', static function (int $total): int {
     return $total - 1000; // Apply a $10 discount.
 }, priority: 10);
 
-$hooks->addFilter('invoice.total', static function (int $total): int {
+$hooks->addFilter('InvoiceTotal', static function (int $total): int {
     return $total + 500; // Add a $5 service charge.
 }, priority: 20);
 
-$total = $hooks->applyFilters('invoice.total', 10000);
+$total = $hooks->applyFilters('InvoiceTotal', 10000);
 // 9500 cents
 ```
 
@@ -130,15 +128,15 @@ An administration dashboard may contain widgets from billing, support, and inven
 The dashboard asks every module for its own definition:
 
 ```php
-$hooks->addCollector('dashboard.widgets', static function (int $userId): array {
+$hooks->addCollector('DashboardWidgets', static function (int $userId): array {
     return ['key' => 'revenue', 'title' => 'Revenue', 'user_id' => $userId];
 });
 
-$hooks->addCollector('dashboard.widgets', static function (int $userId): array {
+$hooks->addCollector('DashboardWidgets', static function (int $userId): array {
     return ['key' => 'tickets', 'title' => 'Open tickets', 'user_id' => $userId];
 });
 
-$widgets = $hooks->collect('dashboard.widgets', $userId);
+$widgets = $hooks->collect('DashboardWidgets', $userId);
 ```
 
 `collect()` returns one raw entry per listener, in priority and registration order. It does not merge or flatten widget definitions, leaving the dashboard free to render or process the shape it needs. A collector returns `[]` when no module has registered a widget.
@@ -151,22 +149,22 @@ Payment packages should be able to add Stripe, bank transfer, or purchase-order 
 
 ### Let packages contribute capabilities
 
-Each payment package contributes a definition to `checkout.payment_methods`:
+Each payment package contributes a definition to `CheckoutPaymentMethods`:
 
 ```php
-$hooks->addCollector('checkout.payment_methods', static fn (): array => [
+$hooks->addCollector('CheckoutPaymentMethods', static fn (): array => [
     'id' => 'card',
     'label' => 'Credit card',
     'driver' => CardPayment::class,
 ]);
 
-$hooks->addCollector('checkout.payment_methods', static fn (): array => [
+$hooks->addCollector('CheckoutPaymentMethods', static fn (): array => [
     'id' => 'bank_transfer',
     'label' => 'Bank transfer',
     'driver' => BankTransferPayment::class,
 ]);
 
-$paymentMethods = $hooks->collect('checkout.payment_methods');
+$paymentMethods = $hooks->collect('CheckoutPaymentMethods');
 ```
 
 The checkout implementation receives every definition and decides how to display or validate it. A collector fits because each package owns an independent payment-method record.
@@ -179,13 +177,13 @@ An order receipt may need payment details, tax, discounts, loyalty rewards, ship
 
 ### Collect structured sections
 
-Expose `order.receipt.sections` when the application has an `Order`. Each extension contributes structured data for one section, not a complete receipt:
+Expose `OrderReceiptSections` when the application has an `Order`. Each extension contributes structured data for one section, not a complete receipt:
 
 ```php
 use App\Models\Order;
 
 $hooks->addCollector(
-    'order.receipt.sections',
+    'OrderReceiptSections',
     static fn (Order $order): array => [
         'title' => 'Payment',
         'rows' => [
@@ -196,7 +194,7 @@ $hooks->addCollector(
 );
 
 $hooks->addCollector(
-    'order.receipt.sections',
+    'OrderReceiptSections',
     static fn (Order $order): array => [
         'title' => 'Shipping',
         'rows' => [
@@ -205,7 +203,7 @@ $hooks->addCollector(
     ],
 );
 
-$sections = $hooks->collect('order.receipt.sections', $order);
+$sections = $hooks->collect('OrderReceiptSections', $order);
 // One raw array entry per registered section.
 ```
 
@@ -249,8 +247,8 @@ final class OrderReceiptRenderer implements Renderer
     }
 }
 
-$hooks->setRenderer('order.receipt.sections', OrderReceiptRenderer::class);
-$html = $hooks->render('order.receipt.sections', $order);
+$hooks->setRenderer('OrderReceiptSections', OrderReceiptRenderer::class);
+$html = $hooks->render('OrderReceiptSections', $order);
 ```
 
 The renderer receives one raw section per collector, so modules can contribute payment, tax, discount, loyalty, shipping, or subscription data without knowing the receipt's presentation. Escaping and formatting happen in one place, which keeps the output consistent and lets you redesign the receipt without changing every extension. `collect()` remains available when another caller needs the raw sections; use `render()` when the caller needs the final string.
@@ -270,11 +268,11 @@ Use `BooleanAndProcessor` to require every contribution to be `true`:
 ```php
 use Magdicom\Processors\BooleanAndProcessor;
 
-$hooks->addCollector('checkout.allowed', static fn (int $userId): bool => true);
-$hooks->addCollector('checkout.allowed', static fn (int $userId): bool => $userId !== 0);
-$hooks->setProcessor('checkout.allowed', new BooleanAndProcessor());
+$hooks->addCollector('CheckoutAllowed', static fn (int $userId): bool => true);
+$hooks->addCollector('CheckoutAllowed', static fn (int $userId): bool => $userId !== 0);
+$hooks->setProcessor('CheckoutAllowed', new BooleanAndProcessor());
 
-$allowed = $hooks->process('checkout.allowed', $userId);
+$allowed = $hooks->process('CheckoutAllowed', $userId);
 ```
 
 Each collector must return a real `bool`; values are not coerced. `BooleanAndProcessor` returns `true` for an empty result list, so an application that requires at least one rule should check registration separately. `process()` returns the processor's boolean result, making this a good fit for a single application decision.
@@ -302,8 +300,8 @@ final class SendInvoiceReceipt
     }
 }
 
-hooks()->addAction('invoice.paid', [SendInvoiceReceipt::class, 'handle']);
-hooks()->doAction('invoice.paid', $invoiceId);
+hooks()->addAction('InvoicePaid', [SendInvoiceReceipt::class, 'handle']);
+hooks()->doAction('InvoicePaid', $invoiceId);
 ```
 
 Laravel resolves `ReceiptMailer` when the callback is prepared, so the module can use normal constructor injection. The hook point and its arguments stay explicit, while Laravel handles the callback's dependencies. Static callables follow the core behavior and do not need container resolution.

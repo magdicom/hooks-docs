@@ -5,8 +5,6 @@ description: Install the Hooks core package or Laravel integration.
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Installation
-
 Hooks 2.x is available as beta Composer packages. Install the core package in any PHP application, or add the Laravel wrapper alongside it when your application uses Laravel.
 
 ## Requirements
@@ -39,11 +37,11 @@ From your application's root, choose the environment you are using:
 
     $hooks = new Hooks();
 
-    $hooks->addAction('report.generated', static function (string $reportId): void {
+    $hooks->addAction('ReportGenerated', static function (string $reportId): void {
         // Perform a synchronous side effect for this extension point.
     });
 
-    $hooks->doAction('report.generated', 'report-42');
+    $hooks->doAction('ReportGenerated', 'report-42');
     ```
 
   </TabItem>
@@ -56,11 +54,11 @@ From your application's root, choose the environment you are using:
     Laravel auto-discovers the wrapper. Use the `hooks()` helper for application-level calls:
 
     ```php
-    hooks()->addAction('report.generated', static function (string $reportId): void {
+    hooks()->addAction('ReportGenerated', static function (string $reportId): void {
         // Perform a synchronous side effect for this extension point.
     });
 
-    hooks()->doAction('report.generated', 'report-42');
+    hooks()->doAction('ReportGenerated', 'report-42');
     ```
 
   </TabItem>

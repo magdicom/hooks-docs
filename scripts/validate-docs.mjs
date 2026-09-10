@@ -2,6 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join, relative } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import process from 'node:process'
+import { coreMethods, facadeMethods, methodReferenceNames } from './api-truth.mjs'
 
 const root = process.cwd()
 const docsRoot = join(root, 'src', 'content', 'docs')
@@ -58,6 +59,25 @@ if (!representativeHtml.includes('https://hooks.momagdi.com/docs/2.x/')) fail('d
 if (!representativeHtml.includes('property="og:title"')) fail('docs/2.x: Open Graph metadata is missing')
 if (!representativeHtml.includes('https://github.com/magdicom/hooks-docs/edit/main/src/content/docs/2.x/index.md')) fail('docs/2.x: edit link is missing or incorrect')
 
+const generatedRoutes = [...plannedRoutes.filter((route) => route !== '/docs'), '/404']
+const generatedPathFor = (route) => route === '/404' ? join(distRoot, '404.html') : distPathFor(route)
+for (const route of generatedRoutes) {
+  const htmlPath = generatedPathFor(route)
+  if (!existsSync(htmlPath)) continue
+  const html = readFileSync(htmlPath, 'utf8')
+  const headings = html.match(/<h1\b/g) ?? []
+  if (headings.length !== 1) fail(`${route}: expected exactly one primary H1, found ${headings.length}`)
+  for (const match of html.matchAll(/href="(#[-\w:]+)"/g)) {
+    if (!html.includes(`id="${match[1].slice(1)}"`)) fail(`${route}: local fragment target is missing: ${match[1]}`)
+  }
+  for (const match of html.matchAll(/href="(\/[^"#?]+(?:\/)?)(?:#([-\w:]+))"/g)) {
+    const targetRoute = match[1].replace(/\/$/, '') || '/'
+    const targetPath = generatedPathFor(targetRoute)
+    if (!existsSync(targetPath)) fail(`${route}: fragment link target route is missing: ${match[1]}`)
+    else if (!readFileSync(targetPath, 'utf8').includes(`id="${match[2]}"`)) fail(`${route}: fragment target is missing: ${match[1]}#${match[2]}`)
+  }
+}
+
 const routeForMarkdown = (file) => {
   const path = relative(docsRoot, file).replace(/\.(?:md|mdx)$/, '')
   if (path === 'index') return '/docs'
@@ -87,20 +107,24 @@ if (sidebarPositions.some((position) => position < 0) || sidebarPositions[0] > s
 }
 
 const phpBlocks = markdown.flatMap(({ file, text }) => [...text.matchAll(/^[ \t]*```php\n([\s\S]*?)^[ \t]*```/gm)].map((match) => ({ file, code: match[1] })))
-const allowedMethods = new Set([
-  'addAction', 'addFilter', 'addCollector', 'doAction', 'applyFilters', 'collect', 'setProcessor',
-  'setRenderer', 'process', 'processWith', 'render', 'renderWith', 'removeAction', 'removeFilter', 'removeCollector', 'removeAll',
-  'removeAllActions', 'removeAllFilters', 'removeAllCollectors', 'has', 'hasAction', 'hasFilter',
-  'hasCollector', 'count', 'listeners', 'actions', 'filters', 'collectors', 'debug', 'setSourceFile',
-  'getSourceFile', 'id', 'hookPoint', 'type', 'priority', 'remove', 'belongsTo',
-])
 for (const { file, code } of phpBlocks) {
   const name = relative(root, file)
   const completeExample = code.includes('<?php')
   for (const match of code.matchAll(/(?:\$hooks|hooks\(\))\s*->\s*(\w+)\s*\(/g)) {
-    if (!allowedMethods.has(match[1])) fail(`${name}: unknown Hooks method in PHP example: ${match[1]}`)
+    if (!coreMethods.has(match[1])) fail(`${name}: unknown Hooks method in PHP example: ${match[1]}`)
   }
+  for (const match of code.matchAll(/Hooks::(\w+)\s*\(/g)) if (!facadeMethods.has(match[1])) fail(`${name}: unknown Laravel facade method: ${match[1]}`)
   if (completeExample && /\$hooks\s*->/.test(code) && !/new\s+Hooks\s*\(/.test(code) && !/\$hooks\s*=/.test(code)) fail(`${name}: core example uses $hooks without defining it`)
+}
+
+for (const { file, text } of markdown) {
+  const name = relative(root, file)
+  for (const match of text.matchAll(/<MethodReference\b([^>]*)>/g)) {
+    const method = match[1].match(/\bname="([^"]+)"/)?.[1]
+    const signature = match[1].match(/\bsignature=(?:"[^"]*"|\{?`[^`]*`\}?)/)?.[0]
+    if (!method || !methodReferenceNames.has(method)) fail(`${name}: MethodReference uses unknown API name: ${method ?? '(missing)'}`)
+    if (!signature || !signature.includes('public function')) fail(`${name}: MethodReference ${method ?? '(unknown)'} must include a public PHP signature`)
+  }
 }
 
 const allText = sourceFiles.map((file) => readFileSync(file, 'utf8')).join('\n')
@@ -111,7 +135,7 @@ if (!allText.includes('use Magdicom\\LaravelHooks\\Facades\\Hooks;')) fail('lara
 if (!allText.includes('hooks()->addAction(')) fail('laravel: helper calling style is missing')
 if (!allText.includes('Magdicom\\Processors\\FirstProcessor')) fail('processors: plural built-in namespace is missing')
 if (allText.includes('Magdicom\\Processor\\')) fail('source: singular processor namespace remains in public documentation')
-for (const hookPoint of ['invoice.paid', 'invoice.total', 'dashboard.widgets', 'checkout.payment_methods', 'order.receipt.sections', 'checkout.allowed']) {
+for (const hookPoint of ['InvoicePaid', 'InvoiceTotal', 'DashboardWidgets', 'CheckoutPaymentMethods', 'OrderReceiptSections', 'CheckoutAllowed']) {
   if (!allText.includes(hookPoint)) fail(`use-cases: expected hook point is missing: ${hookPoint}`)
 }
 if (/magdicom\/hook(?!s)/.test(allText)) fail('source: incorrect core package name detected')

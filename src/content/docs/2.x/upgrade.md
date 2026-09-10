@@ -3,8 +3,6 @@ title: Upgrade from 1.x
 description: Move common Hooks version 1 patterns to the 2.x Beta API.
 ---
 
-# Upgrade from 1.x
-
 Hooks 2.x replaces version 1's registration and output model with explicit actions, filters, collectors, processors, and renderers. This guide shows how to move the common patterns; it is not a copy of the version-1 manual.
 
 The mappings below follow the core and Laravel package upgrade guides. The 2.x packages are beta releases, so test your migration against the versions your application supports.
@@ -47,11 +45,11 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addAction('invoice.paid', static function (int $invoiceId): void {
+$hooks->addAction('InvoicePaid', static function (int $invoiceId): void {
     // Send a synchronous notification or write an audit entry.
 });
 
-$hooks->doAction('invoice.paid', 42);
+$hooks->doAction('InvoicePaid', 42);
 ```
 
 `doAction()` returns `void`. If callers used the old callback's return value, migrate that code to a filter or collector instead.
@@ -66,11 +64,11 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addFilter('profile.label', static function (string $label): string {
+$hooks->addFilter('ProfileLabel', static function (string $label): string {
     return strtoupper($label);
 });
 
-$label = $hooks->applyFilters('profile.label', 'administrator');
+$label = $hooks->applyFilters('ProfileLabel', 'administrator');
 ```
 
 The current value is the first callback argument, and each callback's return value becomes the next value. With no listeners, `applyFilters()` returns the original value.
@@ -85,10 +83,10 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addCollector('dashboard.widgets', static fn (): array => ['owner']);
-$hooks->addCollector('dashboard.widgets', static fn (): array => ['activity']);
+$hooks->addCollector('DashboardWidgets', static fn (): array => ['owner']);
+$hooks->addCollector('DashboardWidgets', static fn (): array => ['activity']);
 
-$cards = $hooks->collect('dashboard.widgets');
+$cards = $hooks->collect('DashboardWidgets');
 // [['owner'], ['activity']]
 ```
 
@@ -100,7 +98,7 @@ For result lists, the migration is:
 
 ```php
 // Version 2
-$results = $hooks->collect('dashboard.widgets');
+$results = $hooks->collect('DashboardWidgets');
 ```
 
 This replaces both old `all()` result gathering and `all()->toArray()`. If you need a merged or flattened shape, configure a collector processor such as `MergeProcessor` or `FlattenProcessor`, or transform the raw array yourself. `collect()` never merges entries automatically.
@@ -119,14 +117,14 @@ use Magdicom\Processors\FirstProcessor;
 use Magdicom\Processors\LastProcessor;
 
 $hooks = new Hooks();
-$hooks->addCollector('checkout.banner', static fn (): string => 'Primary');
-$hooks->addCollector('checkout.banner', static fn (): string => 'Fallback');
+$hooks->addCollector('CheckoutBanner', static fn (): string => 'Primary');
+$hooks->addCollector('CheckoutBanner', static fn (): string => 'Fallback');
 
-$hooks->setProcessor('checkout.banner', new FirstProcessor());
-$first = $hooks->process('checkout.banner');
+$hooks->setProcessor('CheckoutBanner', new FirstProcessor());
+$first = $hooks->process('CheckoutBanner');
 
-$hooks->setProcessor('checkout.banner', new LastProcessor());
-$last = $hooks->process('checkout.banner');
+$hooks->setProcessor('CheckoutBanner', new LastProcessor());
+$last = $hooks->process('CheckoutBanner');
 ```
 
 `FirstProcessor` and `LastProcessor` return `null` for an empty result list. Selection is a collector decision; actions and filters do not have `first()` or `last()` methods.
@@ -143,11 +141,11 @@ declare(strict_types=1);
 use Magdicom\Hooks;
 
 $hooks = new Hooks();
-$hooks->addFilter('invoice.total', static function (int $price, string $currency): int {
+$hooks->addFilter('InvoiceTotal', static function (int $price, string $currency): int {
     return $currency === 'USD' ? $price : $price + 1;
 });
 
-$price = $hooks->applyFilters('invoice.total', 100, 'USD');
+$price = $hooks->applyFilters('InvoiceTotal', 100, 'USD');
 ```
 
 For a larger shared input, pass one typed context object as an explicit argument:
@@ -170,7 +168,7 @@ final readonly class RenderContext
 
 $hooks = new Hooks();
 $context = new RenderContext('en', 'user-42');
-$hooks->doAction('profile.rendered', $context);
+$hooks->doAction('ProfileRendered', $context);
 ```
 
 The Hooks core does not maintain a hidden global parameter array. Processors and renderers can use `ProcessingContext` to read the hook point and original invocation arguments.
@@ -188,11 +186,11 @@ use Magdicom\Hooks;
 use Magdicom\Processors\ConcatenateRenderer;
 
 $hooks = new Hooks();
-$hooks->addCollector('navigation.labels', static fn (): string => 'Hooks');
-$hooks->addCollector('navigation.labels', static fn (): string => 'Beta');
-$hooks->setRenderer('navigation.labels', new ConcatenateRenderer(' · '));
+$hooks->addCollector('NavigationLabels', static fn (): string => 'Hooks');
+$hooks->addCollector('NavigationLabels', static fn (): string => 'Beta');
+$hooks->setRenderer('NavigationLabels', new ConcatenateRenderer(' · '));
 
-$output = $hooks->render('navigation.labels');
+$output = $hooks->render('NavigationLabels');
 // 'Hooks · Beta'
 ```
 

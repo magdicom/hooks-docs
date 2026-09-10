@@ -95,12 +95,6 @@ html {
   scroll-behavior: smooth;
 }
 
-html,
-body {
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
 body {
   color: var(--hooks-ink);
 }
@@ -185,25 +179,27 @@ main,
 }
 
 @media (max-width: 50rem) {
-  main,
-  .content-panel,
-  .content-panel > .sl-container {
-    width: 100vw;
-    max-width: 100vw;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
-
   .sl-markdown-content {
-    width: 100%;
+    min-width: 0;
+    width: auto;
     max-width: 100%;
-    overflow-wrap: anywhere;
   }
 
   .method-reference {
     margin-left: 0;
     margin-right: 0;
     padding: 0.85rem;
+  }
+}
+
+.processor-comparison {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 50rem) {
+  .processor-comparison {
+    display: none;
   }
 }
 
